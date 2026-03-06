@@ -1,3 +1,7 @@
+/// <summary>
+/// PostmanOpenAPIConverter - A bidirectional converter between Postman collections and OpenAPI specifications.
+/// </summary>
+
 using System.CommandLine;
 using PostmanOpenAPIConverter.Converters;
 

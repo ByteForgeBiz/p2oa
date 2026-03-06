@@ -5,6 +5,9 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace PostmanOpenAPIConverter.Converters;
 
+/// <summary>
+/// Converts Postman collections to the Postman GIT-compatible YAML directory structure.
+/// </summary>
 public static class PostmanToGitYamlConverter
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -21,6 +24,12 @@ public static class PostmanToGitYamlConverter
 
     // ── Entry points ─────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Converts a Postman collection JSON string to a Postman GIT-compatible YAML directory structure.
+    /// </summary>
+    /// <param name="postmanJson">The Postman collection JSON string.</param>
+    /// <param name="outputDir">The output directory where the YAML files will be written.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the JSON cannot be parsed.</exception>
     public static void Convert(string postmanJson, DirectoryInfo outputDir)
     {
         PostmanCollection collection;
@@ -37,6 +46,11 @@ public static class PostmanToGitYamlConverter
         Convert(collection, outputDir);
     }
 
+    /// <summary>
+    /// Converts a Postman collection object to a Postman GIT-compatible YAML directory structure.
+    /// </summary>
+    /// <param name="collection">The Postman collection object.</param>
+    /// <param name="outputDir">The output directory where the YAML files will be written.</param>
     public static void Convert(PostmanCollection collection, DirectoryInfo outputDir)
     {
         // .postman/resources.yaml — workspace binding
@@ -67,6 +81,11 @@ public static class PostmanToGitYamlConverter
 
     // ── Tree traversal ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Recursively processes Postman items (requests and folders) and writes them to the output directory.
+    /// </summary>
+    /// <param name="items">The list of Postman items to process.</param>
+    /// <param name="dir">The directory where items should be written.</param>
     private static void ProcessItems(List<PostmanItem> items, DirectoryInfo dir)
     {
         for (int i = 0; i < items.Count; i++)
@@ -97,6 +116,12 @@ public static class PostmanToGitYamlConverter
 
     // ── Request builder ───────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Builds a GitHttpRequest object from a Postman item.
+    /// </summary>
+    /// <param name="item">The Postman item containing the request.</param>
+    /// <param name="order">The display order for this request.</param>
+    /// <returns>The constructed GitHttpRequest object.</returns>
     private static GitHttpRequest BuildRequest(PostmanItem item, long order)
     {
         var req = item.Request!;
@@ -117,6 +142,11 @@ public static class PostmanToGitYamlConverter
 
     // ── Field builders ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Converts Postman variables to a dictionary format for YAML output.
+    /// </summary>
+    /// <param name="vars">The list of Postman variables.</param>
+    /// <returns>A dictionary of variable key-value pairs, or null if no variables.</returns>
     private static Dictionary<string, string>? BuildVariables(List<PostmanVariable>? vars)
     {
         if (vars is not { Count: > 0 }) return null;
@@ -126,6 +156,11 @@ public static class PostmanToGitYamlConverter
         return dict.Count > 0 ? dict : null;
     }
 
+    /// <summary>
+    /// Converts Postman headers to a dictionary format for YAML output.
+    /// </summary>
+    /// <param name="req">The Postman request containing headers.</param>
+    /// <returns>A dictionary of header key-value pairs, or null if no headers.</returns>
     private static Dictionary<string, string>? BuildHeaders(PostmanRequest req)
     {
         if (req.Header is not { Count: > 0 }) return null;
@@ -135,6 +170,11 @@ public static class PostmanToGitYamlConverter
         return dict.Count > 0 ? dict : null;
     }
 
+    /// <summary>
+    /// Converts Postman query parameters to a dictionary format for YAML output.
+    /// </summary>
+    /// <param name="req">The Postman request containing query parameters.</param>
+    /// <returns>A dictionary of query parameter key-value pairs, or null if no parameters.</returns>
     private static Dictionary<string, string>? BuildQueryParams(PostmanRequest req)
     {
         if (req.Url?.Query is not { Count: > 0 }) return null;
@@ -144,6 +184,11 @@ public static class PostmanToGitYamlConverter
         return dict.Count > 0 ? dict : null;
     }
 
+    /// <summary>
+    /// Converts Postman path variables to a dictionary format for YAML output.
+    /// </summary>
+    /// <param name="req">The Postman request containing path variables.</param>
+    /// <returns>A dictionary of path variable key-value pairs, or null if no variables.</returns>
     private static Dictionary<string, string>? BuildPathVariables(PostmanRequest req)
     {
         if (req.Url?.Variable is not { Count: > 0 }) return null;
@@ -153,6 +198,11 @@ public static class PostmanToGitYamlConverter
         return dict.Count > 0 ? dict : null;
     }
 
+    /// <summary>
+    /// Converts a Postman request body to a GitBody object for YAML output.
+    /// </summary>
+    /// <param name="req">The Postman request containing the body.</param>
+    /// <returns>A GitBody object, or null if no body is present.</returns>
     private static GitBody? BuildBody(PostmanRequest req)
     {
         if (req.Body is null) return null;
@@ -194,6 +244,11 @@ public static class PostmanToGitYamlConverter
         };
     }
 
+    /// <summary>
+    /// Determines the body type for raw content by checking language hints or sniffing content.
+    /// </summary>
+    /// <param name="req">The Postman request containing the body.</param>
+    /// <returns>The body type string (json, xml, html, text, or raw).</returns>
     private static string ResolveRawBodyType(PostmanRequest req)
     {
         if (req.Body?.Options?.Raw?.Language is { } lang)
@@ -206,6 +261,11 @@ public static class PostmanToGitYamlConverter
         return "raw";
     }
 
+    /// <summary>
+    /// Converts Postman authentication configuration to a GitAuth object.
+    /// </summary>
+    /// <param name="auth">The Postman authentication object.</param>
+    /// <returns>A GitAuth object, or null if no authentication is configured.</returns>
     private static GitAuth? BuildAuth(PostmanAuth? auth)
     {
         if (auth?.Type is null) return null;
@@ -227,6 +287,11 @@ public static class PostmanToGitYamlConverter
         return new GitAuth { Type = auth.Type };
     }
 
+    /// <summary>
+    /// Converts Postman events (pre-request and test scripts) to GitScript objects.
+    /// </summary>
+    /// <param name="events">The list of Postman events.</param>
+    /// <returns>A list of GitScript objects, or null if no scripts are present.</returns>
     private static List<GitScript>? BuildScripts(List<PostmanEvent>? events)
     {
         if (events is not { Count: > 0 }) return null;
@@ -246,13 +311,24 @@ public static class PostmanToGitYamlConverter
 
     // ── Utilities ─────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Serializes an object to YAML and writes it to a file in the specified directory.
+    /// </summary>
+    /// <typeparam name="T">The type of object to serialize.</typeparam>
+    /// <param name="dir">The directory where the file should be written.</param>
+    /// <param name="filename">The name of the YAML file.</param>
+    /// <param name="obj">The object to serialize.</param>
     private static void WriteYaml<T>(DirectoryInfo dir, string filename, T obj)
     {
         dir.Create();
         File.WriteAllText(Path.Combine(dir.FullName, filename), Yaml.Serialize(obj));
     }
 
-    /// <summary>Replaces characters that are invalid in Windows file/folder names.</summary>
+    /// <summary>
+    /// Replaces characters that are invalid in Windows file/folder names with underscores.
+    /// </summary>
+    /// <param name="name">The original name.</param>
+    /// <returns>A sanitized name safe for use as a file or folder name.</returns>
     private static string SanitizeName(string name)
     {
         var invalid = Path.GetInvalidFileNameChars();

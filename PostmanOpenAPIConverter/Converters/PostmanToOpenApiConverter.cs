@@ -6,6 +6,10 @@ using PostmanOpenAPIConverter.Models;
 
 namespace PostmanOpenAPIConverter.Converters;
 
+/// <summary>
+/// Converts Postman collections to OpenAPI (Swagger) YAML specifications.
+/// Supports OpenAPI versions 2.0, 3.0, 3.1, and 3.2.
+/// </summary>
 public static class PostmanToOpenApiConverter
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -15,6 +19,13 @@ public static class PostmanToOpenApiConverter
         ReadCommentHandling = JsonCommentHandling.Skip
     };
 
+    /// <summary>
+    /// Converts a Postman collection JSON string to an OpenAPI YAML specification.
+    /// </summary>
+    /// <param name="postmanJson">The Postman collection JSON string.</param>
+    /// <param name="openApiVersion">The target OpenAPI version (default is 3.0).</param>
+    /// <returns>The OpenAPI specification in YAML format.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the JSON cannot be parsed.</exception>
     public static string Convert(string postmanJson, OpenApiVersion openApiVersion = OpenApiVersion.OpenApi3_0)
     {
         PostmanCollection collection;
@@ -31,6 +42,12 @@ public static class PostmanToOpenApiConverter
         return Convert(collection, openApiVersion);
     }
 
+    /// <summary>
+    /// Converts a Postman collection object to an OpenAPI YAML specification.
+    /// </summary>
+    /// <param name="collection">The Postman collection object.</param>
+    /// <param name="openApiVersion">The target OpenAPI version (default is 3.1).</param>
+    /// <returns>The OpenAPI specification in YAML format.</returns>
     public static string Convert(PostmanCollection collection, OpenApiVersion openApiVersion = OpenApiVersion.OpenApi3_1)
     {
         var document = BuildDocument(collection);
@@ -39,6 +56,11 @@ public static class PostmanToOpenApiConverter
 
     // ── Document builder ─────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Builds an OpenAPI document from a Postman collection by extracting paths, operations, and server information.
+    /// </summary>
+    /// <param name="collection">The Postman collection to convert.</param>
+    /// <returns>The constructed OpenAPI document.</returns>
     private static OpenApiDocument BuildDocument(PostmanCollection collection)
     {
         var document = new OpenApiDocument
@@ -91,6 +113,12 @@ public static class PostmanToOpenApiConverter
 
     // ── Traversal ────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Recursively flattens the nested Postman item hierarchy into a sequence of requests with their folder tags.
+    /// </summary>
+    /// <param name="items">The collection of Postman items to flatten.</param>
+    /// <param name="folderName">The parent folder name used as a tag (optional).</param>
+    /// <returns>A sequence of tuples containing request name, request object, and folder tag.</returns>
     private static IEnumerable<(string Name, PostmanRequest Request, string? Tag)> FlattenItems(
         IEnumerable<PostmanItem> items, string? folderName = null)
     {
@@ -106,6 +134,11 @@ public static class PostmanToOpenApiConverter
 
     // ── Path extraction ──────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Extracts the OpenAPI path and server URL from a Postman URL object.
+    /// </summary>
+    /// <param name="url">The Postman URL to extract from.</param>
+    /// <returns>A tuple containing the normalized path and optional server URL.</returns>
     private static (string Path, string? ServerUrl) ExtractPath(PostmanUrl url)
     {
         string? serverUrl = null;
@@ -130,6 +163,11 @@ public static class PostmanToOpenApiConverter
         return (path, serverUrl);
     }
 
+    /// <summary>
+    /// Parses path segments and server URL from a raw URL string.
+    /// </summary>
+    /// <param name="raw">The raw URL string.</param>
+    /// <returns>A tuple containing the path segments and optional server URL.</returns>
     private static (IEnumerable<string> Segments, string? ServerUrl) ParseFromRaw(string raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -183,6 +221,11 @@ public static class PostmanToOpenApiConverter
             : "https://" + normalized;
     }
 
+    /// <summary>
+    /// Creates an OpenAPI server object from a server URL, extracting and declaring server variables.
+    /// </summary>
+    /// <param name="serverUrl">The server URL which may contain variable placeholders.</param>
+    /// <returns>The configured OpenAPI server object.</returns>
     private static OpenApiServer BuildServer(string serverUrl)
     {
         // Collect every {varname} token in the URL and declare them as server variables.
@@ -203,6 +246,12 @@ public static class PostmanToOpenApiConverter
 
     // ── Operation builder ────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Builds an OpenAPI operation (endpoint) from a Postman request.
+    /// </summary>
+    /// <param name="name">The name/summary of the operation.</param>
+    /// <param name="request">The Postman request object.</param>
+    /// <returns>The constructed OpenAPI operation.</returns>
     private static OpenApiOperation BuildOperation(string name, PostmanRequest request)
     {
         var operation = new OpenApiOperation
@@ -226,6 +275,11 @@ public static class PostmanToOpenApiConverter
         return operation;
     }
 
+    /// <summary>
+    /// Extracts and builds OpenAPI parameters (path and query) from a Postman request.
+    /// </summary>
+    /// <param name="request">The Postman request containing URL parameters.</param>
+    /// <returns>A list of OpenAPI parameter objects.</returns>
     private static List<OpenApiParameter> BuildParameters(PostmanRequest request)
     {
         var parameters = new List<OpenApiParameter>();
@@ -271,6 +325,11 @@ public static class PostmanToOpenApiConverter
         return parameters;
     }
 
+    /// <summary>
+    /// Extracts path variable names from URL path segments (e.g., {id} from the path).
+    /// </summary>
+    /// <param name="url">The Postman URL object.</param>
+    /// <returns>A sequence of path variable names.</returns>
     private static IEnumerable<string> ExtractPathVarNames(PostmanUrl? url)
     {
         if (url?.Path is null) yield break;
@@ -281,9 +340,19 @@ public static class PostmanToOpenApiConverter
         }
     }
 
+    /// <summary>
+    /// Determines whether the given HTTP method typically includes a request body.
+    /// </summary>
+    /// <param name="method">The HTTP method.</param>
+    /// <returns>True if the method supports request bodies; otherwise, false.</returns>
     private static bool HasRequestBody(string method) =>
         method.ToUpperInvariant() is not ("GET" or "HEAD" or "OPTIONS" or "TRACE");
 
+    /// <summary>
+    /// Builds an OpenAPI request body object from a Postman request.
+    /// </summary>
+    /// <param name="request">The Postman request containing body data.</param>
+    /// <returns>The constructed OpenAPI request body.</returns>
     private static OpenApiRequestBody BuildRequestBody(PostmanRequest request)
     {
         var contentType = ResolveContentType(request);
@@ -299,6 +368,11 @@ public static class PostmanToOpenApiConverter
         };
     }
 
+    /// <summary>
+    /// Determines the Content-Type for a Postman request body by checking headers, body options, or content sniffing.
+    /// </summary>
+    /// <param name="request">The Postman request.</param>
+    /// <returns>The detected or inferred Content-Type string.</returns>
     private static string ResolveContentType(PostmanRequest request)
     {
         // 1. Explicit Content-Type header
@@ -328,6 +402,11 @@ public static class PostmanToOpenApiConverter
         return "application/json";
     }
 
+    /// <summary>
+    /// Parses a string HTTP method into the corresponding <see cref="HttpMethod"/> enumeration value.
+    /// </summary>
+    /// <param name="method">The HTTP method string.</param>
+    /// <returns>The corresponding HttpMethod value, defaulting to GET for unrecognized methods.</returns>
     private static HttpMethod ParseMethod(string method) =>
         method.ToUpperInvariant() switch
         {
@@ -344,6 +423,12 @@ public static class PostmanToOpenApiConverter
 
     // ── Serialization ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Serializes an OpenAPI document to YAML format using the specified version.
+    /// </summary>
+    /// <param name="document">The OpenAPI document to serialize.</param>
+    /// <param name="version">The target OpenAPI version.</param>
+    /// <returns>The YAML string representation of the document.</returns>
     private static string SerializeToYaml(OpenApiDocument document, OpenApiVersion version)
     {
         var output = new StringWriter();

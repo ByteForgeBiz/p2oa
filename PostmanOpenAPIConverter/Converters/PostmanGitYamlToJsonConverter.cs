@@ -7,6 +7,9 @@ using Yaml = System.Collections.Generic.Dictionary<object, object>;
 
 namespace PostmanOpenAPIConverter.Converters;
 
+/// <summary>
+/// Converts Postman GIT-compatible YAML directory structures back to Postman collection JSON format.
+/// </summary>
 public static class PostmanGitYamlToJsonConverter
 {
     private static readonly IDeserializer YamlDeserializer = new DeserializerBuilder().Build();
@@ -20,6 +23,10 @@ public static class PostmanGitYamlToJsonConverter
     /// <paramref name="inputDir"/> may be the repo root (containing
     /// <c>postman/collections/</c>) or the collection directory itself.
     /// </summary>
+    /// <param name="inputDir">The input directory containing the Postman GIT structure.</param>
+    /// <param name="collectionName">Optional collection name to convert when multiple collections exist.</param>
+    /// <returns>The Postman collection as a JSON string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the collection structure cannot be found or parsed.</exception>
     public static string Convert(DirectoryInfo inputDir, string? collectionName = null)
     {
         var collectionDir = FindCollectionDir(inputDir, collectionName);
@@ -28,6 +35,13 @@ public static class PostmanGitYamlToJsonConverter
 
     // ── Directory discovery ───────────────────────────────────────────────────
 
+    /// <summary>
+    /// Locates the collection directory within the input directory structure.
+    /// </summary>
+    /// <param name="inputDir">The input directory to search.</param>
+    /// <param name="collectionName">Optional collection name to find.</param>
+    /// <returns>The directory containing the collection definition.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the collection directory cannot be found.</exception>
     private static DirectoryInfo FindCollectionDir(DirectoryInfo inputDir, string? collectionName)
     {
         // Is inputDir itself the collection directory?
@@ -68,6 +82,11 @@ public static class PostmanGitYamlToJsonConverter
 
     // ── Collection builder ────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Builds a Postman collection JSON object from a collection directory.
+    /// </summary>
+    /// <param name="collectionDir">The directory containing the collection definition and items.</param>
+    /// <returns>The Postman collection as a JSON string.</returns>
     private static string ConvertCollection(DirectoryInfo collectionDir)
     {
         var def = ReadYaml(Path.Combine(collectionDir.FullName, ".resources", "definition.yaml"));
@@ -96,6 +115,11 @@ public static class PostmanGitYamlToJsonConverter
 
     // ── Item tree reader ──────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Recursively reads items (requests and folders) from a directory.
+    /// </summary>
+    /// <param name="dir">The directory to read items from.</param>
+    /// <returns>A JSON array containing the items in their proper order.</returns>
     private static JsonArray ReadItems(DirectoryInfo dir)
     {
         var items = new List<(long Order, JsonObject Item)>();
@@ -132,6 +156,12 @@ public static class PostmanGitYamlToJsonConverter
 
     // ── Item builders ─────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Builds a Postman request item from a YAML request definition.
+    /// </summary>
+    /// <param name="name">The name of the request.</param>
+    /// <param name="yaml">The YAML dictionary containing request data.</param>
+    /// <returns>A JSON object representing the Postman request item.</returns>
     private static JsonObject BuildRequestItem(string name, Yaml yaml)
     {
         var request = new JsonObject
@@ -156,6 +186,12 @@ public static class PostmanGitYamlToJsonConverter
         return item;
     }
 
+    /// <summary>
+    /// Builds a Postman folder item from a subdirectory.
+    /// </summary>
+    /// <param name="subDir">The subdirectory containing the folder.</param>
+    /// <param name="folderDef">The YAML dictionary containing folder definition data.</param>
+    /// <returns>A JSON object representing the Postman folder item.</returns>
     private static JsonObject BuildFolderItem(DirectoryInfo subDir, Yaml folderDef)
     {
         var item = new JsonObject
@@ -171,6 +207,11 @@ public static class PostmanGitYamlToJsonConverter
 
     // ── Field builders ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Builds a Postman URL JSON object from YAML data.
+    /// </summary>
+    /// <param name="yaml">The YAML dictionary containing URL data.</param>
+    /// <returns>A JSON object representing the Postman URL.</returns>
     private static JsonNode BuildUrlJson(Yaml yaml)
     {
         var urlObj = new JsonObject { ["raw"] = Str(yaml, "url") ?? "" };
@@ -194,6 +235,11 @@ public static class PostmanGitYamlToJsonConverter
         return urlObj;
     }
 
+    /// <summary>
+    /// Builds a Postman headers JSON array from YAML data.
+    /// </summary>
+    /// <param name="yaml">The YAML dictionary containing headers data.</param>
+    /// <returns>A JSON array representing the Postman headers.</returns>
     private static JsonArray BuildHeadersJson(Yaml yaml)
     {
         var arr = new JsonArray();
@@ -203,6 +249,11 @@ public static class PostmanGitYamlToJsonConverter
         return arr;
     }
 
+    /// <summary>
+    /// Builds a Postman body JSON object from YAML data.
+    /// </summary>
+    /// <param name="yaml">The YAML dictionary containing body data.</param>
+    /// <returns>A JSON object representing the Postman body, or null if no body exists.</returns>
     private static JsonObject? BuildBodyJson(Yaml yaml)
     {
         if (!yaml.TryGetValue("body", out var b) || b is not Yaml body) return null;
@@ -218,6 +269,12 @@ public static class PostmanGitYamlToJsonConverter
         };
     }
 
+    /// <summary>
+    /// Builds a raw body JSON object (json, xml, text, etc.).
+    /// </summary>
+    /// <param name="type">The body type (json, xml, html, text, raw).</param>
+    /// <param name="content">The body content.</param>
+    /// <returns>A JSON object representing the raw body.</returns>
     private static JsonObject BuildRawBody(string type, object? content)
     {
         var body = new JsonObject
@@ -233,6 +290,11 @@ public static class PostmanGitYamlToJsonConverter
         return body;
     }
 
+    /// <summary>
+    /// Builds a URL-encoded body JSON object.
+    /// </summary>
+    /// <param name="content">The body content dictionary.</param>
+    /// <returns>A JSON object representing the URL-encoded body.</returns>
     private static JsonObject BuildUrlencodedBody(object? content)
     {
         var arr = new JsonArray();
@@ -247,6 +309,11 @@ public static class PostmanGitYamlToJsonConverter
         return new JsonObject { ["mode"] = "urlencoded", ["urlencoded"] = arr };
     }
 
+    /// <summary>
+    /// Builds a form-data body JSON object.
+    /// </summary>
+    /// <param name="content">The body content list.</param>
+    /// <returns>A JSON object representing the form-data body.</returns>
     private static JsonObject BuildFormdataBody(object? content)
     {
         var arr = new JsonArray();
@@ -261,6 +328,11 @@ public static class PostmanGitYamlToJsonConverter
         return new JsonObject { ["mode"] = "formdata", ["formdata"] = arr };
     }
 
+    /// <summary>
+    /// Builds a Postman authentication JSON object from YAML data.
+    /// </summary>
+    /// <param name="yaml">The YAML dictionary containing authentication data.</param>
+    /// <returns>A JSON object representing the Postman authentication, or null if no auth exists.</returns>
     private static JsonObject? BuildAuthJson(Yaml yaml)
     {
         if (!yaml.TryGetValue("auth", out var a) || a is not Yaml auth) return null;
@@ -281,6 +353,11 @@ public static class PostmanGitYamlToJsonConverter
         return authJson;
     }
 
+    /// <summary>
+    /// Builds a Postman scripts (events) JSON array from YAML data.
+    /// </summary>
+    /// <param name="yaml">The YAML dictionary containing scripts data.</param>
+    /// <returns>A JSON array representing the Postman events, or null if no scripts exist.</returns>
     private static JsonArray? BuildScriptsJson(Yaml yaml)
     {
         if (!yaml.TryGetValue("scripts", out var s) || s is not List<object> scripts)
@@ -308,6 +385,11 @@ public static class PostmanGitYamlToJsonConverter
         return events.Count > 0 ? events : null;
     }
 
+    /// <summary>
+    /// Builds a Postman variables JSON array from YAML data.
+    /// </summary>
+    /// <param name="yaml">The YAML dictionary containing variables data.</param>
+    /// <returns>A JSON array representing the Postman variables, or null if no variables exist.</returns>
     private static JsonArray? BuildVariablesJson(Yaml yaml)
     {
         if (!yaml.TryGetValue("variables", out var v) || v is not Yaml vars) return null;
@@ -320,15 +402,36 @@ public static class PostmanGitYamlToJsonConverter
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Reads and deserializes a YAML file.
+    /// </summary>
+    /// <param name="path">The path to the YAML file.</param>
+    /// <returns>A dictionary representing the YAML content.</returns>
     private static Yaml ReadYaml(string path)
         => YamlDeserializer.Deserialize<Yaml>(File.ReadAllText(path)) ?? [];
 
+    /// <summary>
+    /// Safely retrieves a string value from a YAML dictionary.
+    /// </summary>
+    /// <param name="dict">The YAML dictionary.</param>
+    /// <param name="key">The key to look up.</param>
+    /// <returns>The string value if found; otherwise, null.</returns>
     private static string? Str(Yaml dict, string key)
         => dict.TryGetValue(key, out var v) ? v?.ToString() : null;
 
+    /// <summary>
+    /// Safely retrieves a long integer value from a YAML dictionary.
+    /// </summary>
+    /// <param name="dict">The YAML dictionary.</param>
+    /// <param name="key">The key to look up.</param>
+    /// <returns>The long value if found and parseable; otherwise, 0.</returns>
     private static long Long(Yaml dict, string key)
         => dict.TryGetValue(key, out var v) && long.TryParse(v?.ToString(), out var n) ? n : 0L;
 
+    /// <summary>
+    /// Removes all null-valued properties from a JSON object.
+    /// </summary>
+    /// <param name="obj">The JSON object to clean.</param>
     private static void RemoveNulls(JsonObject obj)
     {
         foreach (var key in obj.Where(kv => kv.Value is null).Select(kv => kv.Key).ToList())

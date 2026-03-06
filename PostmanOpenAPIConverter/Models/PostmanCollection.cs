@@ -3,30 +3,56 @@ using System.Text.Json.Serialization;
 
 namespace PostmanOpenAPIConverter.Models;
 
+/// <summary>
+/// Represents a Postman collection (v2.0 or v2.1) with all its metadata, items, and configuration.
+/// </summary>
 public class PostmanCollection
 {
+    /// <summary>
+    /// Gets or sets the collection metadata including name, description, and schema version.
+    /// </summary>
     [JsonPropertyName("info")]
     public PostmanInfo Info { get; set; } = new();
 
+    /// <summary>
+    /// Gets or sets the list of items (folders and requests) in this collection.
+    /// </summary>
     [JsonPropertyName("item")]
     public List<PostmanItem> Item { get; set; } = [];
 
-    /// <summary>Collection-level variables (e.g. baseUrl).</summary>
+    /// <summary>
+    /// Gets or sets collection-level variables (e.g. baseUrl).
+    /// </summary>
     [JsonPropertyName("variable")]
     public List<PostmanVariable>? Variable { get; set; }
 
+    /// <summary>
+    /// Gets or sets collection-level events (pre-request or test scripts).
+    /// </summary>
     [JsonPropertyName("event")]
     public List<PostmanEvent>? Event { get; set; }
 
+    /// <summary>
+    /// Gets or sets collection-level authentication configuration.
+    /// </summary>
     [JsonPropertyName("auth")]
     public PostmanAuth? Auth { get; set; }
 }
 
+/// <summary>
+/// Collection metadata including name, description, and schema version.
+/// </summary>
 public class PostmanInfo
 {
+    /// <summary>
+    /// Gets or sets the name of the collection.
+    /// </summary>
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the description of the collection (plain text or markdown in v2.1).
+    /// </summary>
     [JsonPropertyName("description")]
     [JsonConverter(typeof(DescriptionConverter))]
     public string? Description { get; set; }
@@ -45,64 +71,125 @@ public class PostmanInfo
 /// </summary>
 public class PostmanItem
 {
+    /// <summary>
+    /// Gets or sets the name of this item (folder or request).
+    /// </summary>
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the description of this item.
+    /// </summary>
     [JsonPropertyName("description")]
     [JsonConverter(typeof(DescriptionConverter))]
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Gets or sets the HTTP request (if this item is a request, not a folder).
+    /// </summary>
     [JsonPropertyName("request")]
     public PostmanRequest? Request { get; set; }
 
+    /// <summary>
+    /// Gets or sets the child items (if this item is a folder, not a request).
+    /// </summary>
     [JsonPropertyName("item")]
     public List<PostmanItem>? Item { get; set; }
 
+    /// <summary>
+    /// Gets or sets the events (scripts) attached to this item.
+    /// </summary>
     [JsonPropertyName("event")]
     public List<PostmanEvent>? Event { get; set; }
 
+    /// <summary>
+    /// Gets or sets the authentication configuration for this item.
+    /// </summary>
     [JsonPropertyName("auth")]
     public PostmanAuth? Auth { get; set; }
 }
 
+/// <summary>
+/// Represents an HTTP request with method, URL, headers, body, and authentication.
+/// </summary>
 public class PostmanRequest
 {
+    /// <summary>
+    /// Gets or sets the HTTP method (GET, POST, PUT, DELETE, etc.).
+    /// </summary>
     [JsonPropertyName("method")]
     public string Method { get; set; } = "GET";
 
+    /// <summary>
+    /// Gets or sets the list of HTTP headers for this request.
+    /// </summary>
     [JsonPropertyName("header")]
     public List<PostmanHeader>? Header { get; set; }
 
+    /// <summary>
+    /// Gets or sets the URL for this request (can be a string or structured URL object).
+    /// </summary>
     [JsonPropertyName("url")]
     [JsonConverter(typeof(PostmanUrlConverter))]
     public PostmanUrl? Url { get; set; }
 
+    /// <summary>
+    /// Gets or sets the request body (raw, urlencoded, or formdata).
+    /// </summary>
     [JsonPropertyName("body")]
     public PostmanBody? Body { get; set; }
 
+    /// <summary>
+    /// Gets or sets the description of this request.
+    /// </summary>
     [JsonPropertyName("description")]
     [JsonConverter(typeof(DescriptionConverter))]
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Gets or sets the authentication configuration for this request.
+    /// </summary>
     [JsonPropertyName("auth")]
     public PostmanAuth? Auth { get; set; }
 }
 
+/// <summary>
+/// Represents an HTTP header with a key-value pair and optional disabled flag.
+/// </summary>
 public class PostmanHeader
 {
+    /// <summary>
+    /// Gets or sets the header name (e.g., "Content-Type").
+    /// </summary>
     [JsonPropertyName("key")]
     public string Key { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the header value (e.g., "application/json").
+    /// </summary>
     [JsonPropertyName("value")]
     public string Value { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this header is disabled.
+    /// </summary>
     [JsonPropertyName("disabled")]
     public bool? Disabled { get; set; }
 }
 
+/// <summary>
+/// Represents a Postman URL with raw string, host, path segments, query parameters, and path variables.
+/// </summary>
 public class PostmanUrl
 {
+    /// <summary>
+    /// Gets or sets the raw URL string.
+    /// </summary>
     public string Raw { get; set; } = "";
+
+    /// <summary>
+    /// Gets or sets the host segments (e.g., ["api", "example", "com"]).
+    /// </summary>
     public List<string>? Host { get; set; }
 
     /// <summary>
@@ -110,20 +197,36 @@ public class PostmanUrl
     /// with a <c>value</c> key – the <see cref="PostmanUrlConverter"/> normalises both.
     /// </summary>
     public List<string>? Path { get; set; }
+
+    /// <summary>
+    /// Gets or sets the query parameters for this URL.
+    /// </summary>
     public List<PostmanQueryParam>? Query { get; set; }
 
     /// <summary>Named path-variable bindings (v2.1). Provides descriptions used in OpenAPI.</summary>
     public List<PostmanVariable>? Variable { get; set; }
 }
 
+/// <summary>
+/// Represents a query parameter with key, value, description, and optional disabled flag.
+/// </summary>
 public class PostmanQueryParam
 {
+    /// <summary>
+    /// Gets or sets the query parameter name.
+    /// </summary>
     [JsonPropertyName("key")]
     public string Key { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the query parameter value.
+    /// </summary>
     [JsonPropertyName("value")]
     public string? Value { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this query parameter is disabled.
+    /// </summary>
     [JsonPropertyName("disabled")]
     public bool? Disabled { get; set; }
 
@@ -132,11 +235,20 @@ public class PostmanQueryParam
     public string? Description { get; set; }
 }
 
+/// <summary>
+/// Represents a variable (collection-level or path-level) with key, value, and description.
+/// </summary>
 public class PostmanVariable
 {
+    /// <summary>
+    /// Gets or sets the variable name/key.
+    /// </summary>
     [JsonPropertyName("key")]
     public string Key { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the variable value.
+    /// </summary>
     [JsonPropertyName("value")]
     public string? Value { get; set; }
 
@@ -145,62 +257,117 @@ public class PostmanVariable
     public string? Description { get; set; }
 }
 
+/// <summary>
+/// Represents the request body which can be raw text, form data, or URL-encoded data.
+/// </summary>
 public class PostmanBody
 {
+    /// <summary>
+    /// Gets or sets the body mode ("raw", "urlencoded", "formdata", etc.).
+    /// </summary>
     [JsonPropertyName("mode")]
     public string? Mode { get; set; }
 
+    /// <summary>
+    /// Gets or sets the raw body content (when mode is "raw").
+    /// </summary>
     [JsonPropertyName("raw")]
     public string? Raw { get; set; }
 
+    /// <summary>
+    /// Gets or sets additional options for the body (e.g., language hints for raw content).
+    /// </summary>
     [JsonPropertyName("options")]
     public PostmanBodyOptions? Options { get; set; }
 
+    /// <summary>
+    /// Gets or sets the URL-encoded body data (when mode is "urlencoded").
+    /// </summary>
     [JsonPropertyName("urlencoded")]
     public List<PostmanKeyValuePair>? Urlencoded { get; set; }
 
+    /// <summary>
+    /// Gets or sets the form data body (when mode is "formdata").
+    /// </summary>
     [JsonPropertyName("formdata")]
     public List<PostmanKeyValuePair>? Formdata { get; set; }
 }
 
+/// <summary>
+/// Additional options for request body, such as language hints for raw content.
+/// </summary>
 public class PostmanBodyOptions
 {
+    /// <summary>
+    /// Gets or sets options specific to raw body content.
+    /// </summary>
     [JsonPropertyName("raw")]
     public PostmanBodyRawOptions? Raw { get; set; }
 }
 
+/// <summary>
+/// Options specific to raw body content, including language identification.
+/// </summary>
 public class PostmanBodyRawOptions
 {
+    /// <summary>
+    /// Gets or sets the language/format of the raw content ("json", "xml", "text", etc.).
+    /// </summary>
     [JsonPropertyName("language")]
     public string? Language { get; set; }
 }
 
+/// <summary>
+/// Generic key-value pair used in URL-encoded and form-data bodies.
+/// </summary>
 public class PostmanKeyValuePair
 {
+    /// <summary>
+    /// Gets or sets the key/name of this parameter.
+    /// </summary>
     [JsonPropertyName("key")]
     public string Key { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the value of this parameter.
+    /// </summary>
     [JsonPropertyName("value")]
     public string? Value { get; set; }
 
-    /// <summary>For formdata: "text" or "file".</summary>
+    /// <summary>
+    /// Gets or sets the type for formdata ("text" or "file").
+    /// </summary>
     [JsonPropertyName("type")]
     public string? Type { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this parameter is disabled.
+    /// </summary>
     [JsonPropertyName("disabled")]
     public bool? Disabled { get; set; }
 }
 
+/// <summary>
+/// Represents a pre-request or test script event attached to a collection or request.
+/// </summary>
 public class PostmanEvent
 {
-    /// <summary>"prerequest" or "test".</summary>
+    /// <summary>
+    /// Gets or sets the event type ("prerequest" or "test").
+    /// </summary>
     [JsonPropertyName("listen")]
     public string Listen { get; set; } = "";
 
+    /// <summary>
+    /// Gets or sets the script to execute for this event.
+    /// </summary>
     [JsonPropertyName("script")]
     public PostmanScript? Script { get; set; }
 }
 
+/// <summary>
+/// Contains script code and metadata for pre-request or test scripts.
+/// </summary>
 public class PostmanScript
 {
     /// <summary>MIME type of the script, e.g. "text/javascript".</summary>
