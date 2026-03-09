@@ -1,0 +1,5 @@
+$kind: collection
+name: Task Manager API
+description: A sample REST API for managing tasks and users. Demonstrates folders, path variables, query parameters, and request bodies.
+variables:
+  baseUrl: https://api.example.com/v1

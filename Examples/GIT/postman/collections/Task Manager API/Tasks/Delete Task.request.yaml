@@ -1,0 +1,7 @@
+$kind: http-request
+description: Permanently deletes a task. This action cannot be undone.
+url: '{{baseUrl}}/tasks/:taskId'
+method: DELETE
+pathVariables:
+  taskId: tsk_001
+order: 6000

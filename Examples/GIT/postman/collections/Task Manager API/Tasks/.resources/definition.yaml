@@ -1,0 +1,4 @@
+$kind: collection
+name: Tasks
+description: Endpoints for creating and managing tasks.
+order: 1000

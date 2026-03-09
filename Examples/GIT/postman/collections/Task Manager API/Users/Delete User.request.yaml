@@ -1,0 +1,7 @@
+$kind: http-request
+description: Removes a user from the workspace.
+url: '{{baseUrl}}/users/:userId'
+method: DELETE
+pathVariables:
+  userId: usr_abc123
+order: 4000

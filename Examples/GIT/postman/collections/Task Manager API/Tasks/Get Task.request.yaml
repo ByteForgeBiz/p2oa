@@ -1,0 +1,7 @@
+$kind: http-request
+description: Returns a single task by its ID.
+url: '{{baseUrl}}/tasks/:taskId'
+method: GET
+pathVariables:
+  taskId: tsk_001
+order: 3000

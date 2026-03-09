@@ -1,0 +1,335 @@
+{
+  "info": {
+    "name": "Task Manager API",
+    "description": {
+      "content": "A sample REST API for managing tasks and users. Demonstrates folders, path variables, query parameters, and request bodies.",
+      "type": "text/markdown"
+    },
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.example.com/v1",
+      "description": "Base URL for all requests"
+    }
+  ],
+  "item": [
+    {
+      "name": "Tasks",
+      "description": {
+        "content": "Endpoints for creating and managing tasks.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "description": {
+              "content": "Returns a paginated list of tasks, optionally filtered by status.",
+              "type": "text/markdown"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks?status=open&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "open",
+                  "description": "Filter tasks by status (open, in_progress, done)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (1-based)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Maximum number of results per page"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "description": {
+              "content": "Creates a new task and returns the created resource.",
+              "type": "text/markdown"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Design new login page\",\n  \"description\": \"Revamp the login UI per the new brand guidelines.\",\n  \"assigneeId\": \"usr_abc123\",\n  \"dueDate\": \"2026-04-01\",\n  \"priority\": \"high\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"]
+            }
+          }
+        },
+        {
+          "name": "Get Task",
+          "request": {
+            "method": "GET",
+            "description": {
+              "content": "Returns a single task by its ID.",
+              "type": "text/markdown"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/:taskId",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", ":taskId"],
+              "variable": [
+                {
+                  "key": "taskId",
+                  "value": "tsk_001",
+                  "description": "The unique identifier of the task"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "description": {
+              "content": "Replaces an existing task with the provided data.",
+              "type": "text/markdown"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Design new login page\",\n  \"description\": \"Updated description after design review.\",\n  \"assigneeId\": \"usr_xyz789\",\n  \"dueDate\": \"2026-04-15\",\n  \"priority\": \"medium\",\n  \"status\": \"in_progress\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/:taskId",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", ":taskId"],
+              "variable": [
+                {
+                  "key": "taskId",
+                  "value": "tsk_001",
+                  "description": "The unique identifier of the task"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patch Task Status",
+          "request": {
+            "method": "PATCH",
+            "description": {
+              "content": "Partially updates a task — typically used to change just the status.",
+              "type": "text/markdown"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/:taskId",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", ":taskId"],
+              "variable": [
+                {
+                  "key": "taskId",
+                  "value": "tsk_001",
+                  "description": "The unique identifier of the task"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "description": {
+              "content": "Permanently deletes a task. This action cannot be undone.",
+              "type": "text/markdown"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/:taskId",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", ":taskId"],
+              "variable": [
+                {
+                  "key": "taskId",
+                  "value": "tsk_001",
+                  "description": "The unique identifier of the task"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": {
+        "content": "Endpoints for managing user accounts.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "description": {
+              "content": "Returns all users in the workspace.",
+              "type": "text/markdown"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?role=member",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "member",
+                  "description": "Filter by role (admin, member, viewer)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "description": {
+              "content": "Returns a single user by their ID.",
+              "type": "text/markdown"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123",
+                  "description": "The unique identifier of the user"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "description": {
+              "content": "Creates a new user account.",
+              "type": "text/markdown"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"role\": \"member\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "description": {
+              "content": "Removes a user from the workspace.",
+              "type": "text/markdown"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123",
+                  "description": "The unique identifier of the user"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "description": {
+          "content": "Returns the current health status of the API. No authentication required.",
+          "type": "text/markdown"
+        },
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+$kind: http-request
+description: Returns all users in the workspace.
+url: '{{baseUrl}}/users?role=member'
+method: GET
+queryParams:
+  role: member
+order: 1000

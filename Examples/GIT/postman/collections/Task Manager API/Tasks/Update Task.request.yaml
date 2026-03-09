@@ -1,0 +1,20 @@
+$kind: http-request
+description: Replaces an existing task with the provided data.
+url: '{{baseUrl}}/tasks/:taskId'
+method: PUT
+headers:
+  Content-Type: application/json
+pathVariables:
+  taskId: tsk_001
+body:
+  type: json
+  content: >-
+    {
+      "title": "Design new login page",
+      "description": "Updated description after design review.",
+      "assigneeId": "usr_xyz789",
+      "dueDate": "2026-04-15",
+      "priority": "medium",
+      "status": "in_progress"
+    }
+order: 4000

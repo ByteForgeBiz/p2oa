@@ -1,0 +1,4 @@
+$kind: collection
+name: Users
+description: Endpoints for managing user accounts.
+order: 2000

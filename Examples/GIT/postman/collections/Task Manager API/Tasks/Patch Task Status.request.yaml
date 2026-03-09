@@ -1,0 +1,15 @@
+$kind: http-request
+description: Partially updates a task — typically used to change just the status.
+url: '{{baseUrl}}/tasks/:taskId'
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  taskId: tsk_001
+body:
+  type: json
+  content: >-
+    {
+      "status": "done"
+    }
+order: 5000

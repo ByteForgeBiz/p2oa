@@ -1,0 +1,9 @@
+$kind: http-request
+description: Returns a paginated list of tasks, optionally filtered by status.
+url: '{{baseUrl}}/tasks?status=open&page=1&limit=20'
+method: GET
+queryParams:
+  status: open
+  page: 1
+  limit: 20
+order: 1000

@@ -1,0 +1,15 @@
+$kind: http-request
+description: Creates a new user account.
+url: '{{baseUrl}}/users'
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "role": "member"
+    }
+order: 3000

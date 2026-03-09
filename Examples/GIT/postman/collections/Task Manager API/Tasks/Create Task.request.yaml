@@ -1,0 +1,17 @@
+$kind: http-request
+description: Creates a new task and returns the created resource.
+url: '{{baseUrl}}/tasks'
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "title": "Design new login page",
+      "description": "Revamp the login UI per the new brand guidelines.",
+      "assigneeId": "usr_abc123",
+      "dueDate": "2026-04-01",
+      "priority": "high"
+    }
+order: 2000

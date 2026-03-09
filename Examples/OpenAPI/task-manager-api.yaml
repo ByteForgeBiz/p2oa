@@ -1,0 +1,189 @@
+openapi: '3.1.2'
+info:
+  title: Task Manager API
+  description: 'A sample REST API for managing tasks and users. Demonstrates folders, path variables, query parameters, and request bodies.'
+  version: 1.0.0
+servers:
+  - url: '{baseUrl}'
+    variables:
+      baseUrl:
+        default: ''
+paths:
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: List Tasks
+      description: 'Returns a paginated list of tasks, optionally filtered by status.'
+      parameters:
+        - name: status
+          in: query
+          description: 'Filter tasks by status (open, in_progress, done)'
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (1-based)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of results per page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Tasks
+      summary: Create Task
+      description: Creates a new task and returns the created resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  '/tasks/{taskId}':
+    get:
+      tags:
+        - Tasks
+      summary: Get Task
+      description: Returns a single task by its ID.
+      parameters:
+        - name: taskId
+          in: path
+          description: The unique identifier of the task
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    put:
+      tags:
+        - Tasks
+      summary: Update Task
+      description: Replaces an existing task with the provided data.
+      parameters:
+        - name: taskId
+          in: path
+          description: The unique identifier of the task
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+        - Tasks
+      summary: Patch Task Status
+      description: Partially updates a task — typically used to change just the status.
+      parameters:
+        - name: taskId
+          in: path
+          description: The unique identifier of the task
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags:
+        - Tasks
+      summary: Delete Task
+      description: Permanently deletes a task. This action cannot be undone.
+      parameters:
+        - name: taskId
+          in: path
+          description: The unique identifier of the task
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /users:
+    get:
+      tags:
+        - Users
+      summary: List Users
+      description: Returns all users in the workspace.
+      parameters:
+        - name: role
+          in: query
+          description: 'Filter by role (admin, member, viewer)'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Users
+      summary: Create User
+      description: Creates a new user account.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  '/users/{userId}':
+    get:
+      tags:
+        - Users
+      summary: Get User
+      description: Returns a single user by their ID.
+      parameters:
+        - name: userId
+          in: path
+          description: The unique identifier of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags:
+        - Users
+      summary: Delete User
+      description: Removes a user from the workspace.
+      parameters:
+        - name: userId
+          in: path
+          description: The unique identifier of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /health:
+    get:
+      summary: Health Check
+      description: Returns the current health status of the API. No authentication required.
+      responses:
+        '200':
+          description: OK
+tags:
+  - name: Tasks
+  - name: Users
