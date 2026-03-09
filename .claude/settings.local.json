@@ -8,7 +8,18 @@
       "Bash(python3:*)",
       "Bash(node:*)",
       "Bash(dotnet run:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git:*)",
+      "Bash(reg query:*)",
+      "WebFetch(domain:nsis.sourceforge.io)",
+      "Bash(curl:*)",
+      "Read(//c/Users/pauls/source/repos/PostmanToOpenAPI/**)",
+      "Bash(unzip -o EnVar_plugin.zip -d EnVar_plugin)",
+      "Bash(echo $TEMP:*)",
+      "Read(//tmp/**)",
+      "Read(//c/Users/pauls/AppData/Local/Temp/**)",
+      "Bash(unzip:*)",
+      "Bash(where makensis:*)"
     ]
   }
 }

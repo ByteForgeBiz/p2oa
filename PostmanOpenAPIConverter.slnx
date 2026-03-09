@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/ReadMe/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/ReadMe/resources/">
+    <File Path="resources/p2oa.png" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
