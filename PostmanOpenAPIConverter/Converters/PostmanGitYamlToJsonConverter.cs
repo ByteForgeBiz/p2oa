@@ -12,8 +12,14 @@ namespace PostmanOpenAPIConverter.Converters;
 /// </summary>
 public static class PostmanGitYamlToJsonConverter
 {
+    /// <summary>
+    /// YAML deserializer for reading Postman GIT YAML files.
+    /// </summary>
     private static readonly IDeserializer YamlDeserializer = new DeserializerBuilder().Build();
 
+    /// <summary>
+    /// JSON serializer options configured for writing formatted output.
+    /// </summary>
     private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true };
 
     // ── Entry points ─────────────────────────────────────────────────────────
@@ -65,11 +71,11 @@ public static class PostmanGitYamlToJsonConverter
         {
             var match = collections.FirstOrDefault(d =>
                 string.Equals(d.Name, collectionName, StringComparison.OrdinalIgnoreCase));
-            if (match is null)
-                throw new InvalidOperationException(
+            return match is null
+                ? throw new InvalidOperationException(
                     $"Collection '{collectionName}' not found. " +
-                    $"Available: {string.Join(", ", collections.Select(d => d.Name))}");
-            return match;
+                    $"Available: {string.Join(", ", collections.Select(d => d.Name))}")
+                : match;
         }
 
         if (collections.Length > 1)
@@ -212,7 +218,7 @@ public static class PostmanGitYamlToJsonConverter
     /// </summary>
     /// <param name="yaml">The YAML dictionary containing URL data.</param>
     /// <returns>A JSON object representing the Postman URL.</returns>
-    private static JsonNode BuildUrlJson(Yaml yaml)
+    private static JsonObject BuildUrlJson(Yaml yaml)
     {
         var urlObj = new JsonObject { ["raw"] = Str(yaml, "url") ?? "" };
 

@@ -10,6 +10,9 @@ namespace PostmanOpenAPIConverter.Converters;
 /// </summary>
 public static class PostmanToGitYamlConverter
 {
+    /// <summary>
+    /// JSON serializer options configured for parsing Postman collections.
+    /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -17,6 +20,9 @@ public static class PostmanToGitYamlConverter
         ReadCommentHandling = JsonCommentHandling.Skip
     };
 
+    /// <summary>
+    /// YAML serializer configured with camel case naming and null value omission.
+    /// </summary>
     private static readonly ISerializer Yaml = new SerializerBuilder()
         .WithNamingConvention(CamelCaseNamingConvention.Instance)
         .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
@@ -88,10 +94,10 @@ public static class PostmanToGitYamlConverter
     /// <param name="dir">The directory where items should be written.</param>
     private static void ProcessItems(List<PostmanItem> items, DirectoryInfo dir)
     {
-        for (int i = 0; i < items.Count; i++)
+        for (var i = 0; i < items.Count; i++)
         {
             var item = items[i];
-            long order = (long)(i + 1) * 1000;
+            var order = (long)(i + 1) * 1000;
 
             if (item.Request is not null)
             {

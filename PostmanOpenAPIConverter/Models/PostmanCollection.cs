@@ -370,11 +370,15 @@ public class PostmanEvent
 /// </summary>
 public class PostmanScript
 {
-    /// <summary>MIME type of the script, e.g. "text/javascript".</summary>
+    /// <summary>
+    /// Gets or sets the MIME type of the script (e.g., "text/javascript").
+    /// </summary>
     [JsonPropertyName("type")]
     public string? Type { get; set; }
 
-    /// <summary>Lines of code (each entry is one line).</summary>
+    /// <summary>
+    /// Gets or sets the lines of code (each entry is one line of the script).
+    /// </summary>
     [JsonPropertyName("exec")]
     public List<string>? Exec { get; set; }
 }
@@ -386,9 +390,16 @@ public class PostmanScript
 /// </summary>
 public class PostmanAuth
 {
+    /// <summary>
+    /// Gets or sets the authentication type ("bearer", "basic", "oauth2", etc.).
+    /// </summary>
     [JsonPropertyName("type")]
     public string? Type { get; set; }
 
+    /// <summary>
+    /// Gets or sets the extra authentication data specific to the auth type.
+    /// This captures type-specific credentials in a flexible dictionary format.
+    /// </summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? Extra { get; set; }
 }
@@ -401,6 +412,13 @@ public class PostmanAuth
 /// </summary>
 internal sealed class DescriptionConverter : JsonConverter<string?>
 {
+    /// <summary>
+    /// Reads and converts JSON to a string description value.
+    /// </summary>
+    /// <param name="reader">The JSON reader.</param>
+    /// <param name="typeToConvert">The type to convert.</param>
+    /// <param name="options">The serializer options.</param>
+    /// <returns>The description string, or null if not found.</returns>
     public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
@@ -418,6 +436,12 @@ internal sealed class DescriptionConverter : JsonConverter<string?>
         }
     }
 
+    /// <summary>
+    /// Writes a string description value to JSON.
+    /// </summary>
+    /// <param name="writer">The JSON writer.</param>
+    /// <param name="value">The description value to write.</param>
+    /// <param name="options">The serializer options.</param>
     public override void Write(Utf8JsonWriter writer, string? value, JsonSerializerOptions options)
         => writer.WriteStringValue(value);
 }
@@ -428,6 +452,13 @@ internal sealed class DescriptionConverter : JsonConverter<string?>
 /// </summary>
 internal sealed class PostmanUrlConverter : JsonConverter<PostmanUrl?>
 {
+    /// <summary>
+    /// Reads and converts JSON to a PostmanUrl object.
+    /// </summary>
+    /// <param name="reader">The JSON reader.</param>
+    /// <param name="typeToConvert">The type to convert.</param>
+    /// <param name="options">The serializer options.</param>
+    /// <returns>The PostmanUrl object, or null if not parseable.</returns>
     public override PostmanUrl? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
@@ -443,6 +474,11 @@ internal sealed class PostmanUrlConverter : JsonConverter<PostmanUrl?>
         }
     }
 
+    /// <summary>
+    /// Parses a PostmanUrl from a raw URL string.
+    /// </summary>
+    /// <param name="raw">The raw URL string to parse.</param>
+    /// <returns>A PostmanUrl object with parsed path and query components.</returns>
     private static PostmanUrl ParseFromString(string raw)
     {
         var url = new PostmanUrl { Raw = raw };
@@ -471,6 +507,12 @@ internal sealed class PostmanUrlConverter : JsonConverter<PostmanUrl?>
         return url;
     }
 
+    /// <summary>
+    /// Parses a PostmanUrl from a JSON element representing a structured URL object.
+    /// </summary>
+    /// <param name="el">The JSON element containing the URL data.</param>
+    /// <param name="options">The serializer options for deserializing nested objects.</param>
+    /// <returns>A PostmanUrl object with all components populated from the JSON.</returns>
     private static PostmanUrl ParseFromElement(JsonElement el, JsonSerializerOptions options)
     {
         var url = new PostmanUrl();
@@ -503,6 +545,12 @@ internal sealed class PostmanUrlConverter : JsonConverter<PostmanUrl?>
         return url;
     }
 
+    /// <summary>
+    /// Writes a PostmanUrl object to JSON as a simple string value.
+    /// </summary>
+    /// <param name="writer">The JSON writer.</param>
+    /// <param name="value">The PostmanUrl to write.</param>
+    /// <param name="options">The serializer options.</param>
     public override void Write(Utf8JsonWriter writer, PostmanUrl? value, JsonSerializerOptions options)
         => writer.WriteStringValue(value?.Raw);
 }

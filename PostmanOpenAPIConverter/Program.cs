@@ -39,10 +39,10 @@ toOpenApiCommand.SetAction(async (ParseResult parseResult) =>
 
     var version = versionString switch
     {
-        "3.0" => OpenApiVersion.OpenApi3_0,
-        "3.2" => OpenApiVersion.OpenApi3_2,
-        "2.0" => OpenApiVersion.OpenApi2_0,
-        _     => OpenApiVersion.OpenApi3_1
+        "3.0" => OpenApiVersion.OpenApi30,
+        "3.2" => OpenApiVersion.OpenApi32,
+        "2.0" => OpenApiVersion.OpenApi20,
+        _     => OpenApiVersion.OpenApi31
     };
 
     try

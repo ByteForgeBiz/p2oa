@@ -10,8 +10,11 @@ namespace PostmanOpenAPIConverter.Converters;
 /// Converts Postman collections to OpenAPI (Swagger) YAML specifications.
 /// Supports OpenAPI versions 2.0, 3.0, 3.1, and 3.2.
 /// </summary>
-public static class PostmanToOpenApiConverter
+public static partial class PostmanToOpenApiConverter
 {
+    /// <summary>
+    /// JSON serializer options configured for parsing Postman collections.
+    /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -26,7 +29,7 @@ public static class PostmanToOpenApiConverter
     /// <param name="openApiVersion">The target OpenAPI version (default is 3.0).</param>
     /// <returns>The OpenAPI specification in YAML format.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the JSON cannot be parsed.</exception>
-    public static string Convert(string postmanJson, OpenApiVersion openApiVersion = OpenApiVersion.OpenApi3_0)
+    public static string Convert(string postmanJson, OpenApiVersion openApiVersion = OpenApiVersion.OpenApi30)
     {
         PostmanCollection collection;
         try
@@ -48,7 +51,7 @@ public static class PostmanToOpenApiConverter
     /// <param name="collection">The Postman collection object.</param>
     /// <param name="openApiVersion">The target OpenAPI version (default is 3.1).</param>
     /// <returns>The OpenAPI specification in YAML format.</returns>
-    public static string Convert(PostmanCollection collection, OpenApiVersion openApiVersion = OpenApiVersion.OpenApi3_1)
+    public static string Convert(PostmanCollection collection, OpenApiVersion openApiVersion = OpenApiVersion.OpenApi31)
     {
         var document = BuildDocument(collection);
         return SerializeToYaml(document, openApiVersion);
@@ -71,7 +74,7 @@ public static class PostmanToOpenApiConverter
                 Description = collection.Info.Description,
                 Version = "1.0.0"
             },
-            Paths = new OpenApiPaths()
+            Paths = []
         };
 
         string? serverUrl = null;
@@ -105,7 +108,7 @@ public static class PostmanToOpenApiConverter
                 .ToHashSet();
 
             foreach (var (op, tag) in pendingTags)
-                op.Tags = new HashSet<OpenApiTagReference> { new OpenApiTagReference(tag, document, null!) };
+                op.Tags = new HashSet<OpenApiTagReference> { new(tag, document, null!) };
         }
 
         return document;
@@ -173,7 +176,7 @@ public static class PostmanToOpenApiConverter
         if (string.IsNullOrWhiteSpace(raw))
             return ([], null);
 
-        var withoutProtocol = Regex.Replace(raw, @"^https?://", "");
+        var withoutProtocol = UrlSchemeRegex().Replace(raw, "");
         var qIdx = withoutProtocol.IndexOf('?');
         if (qIdx >= 0) withoutProtocol = withoutProtocol[..qIdx];
 
@@ -214,9 +217,9 @@ public static class PostmanToOpenApiConverter
     private static string NormalizeServerUrl(string host)
     {
         if (string.IsNullOrEmpty(host)) return host;
-        var normalized = Regex.Replace(host, @"\{\{([^}]+)\}\}", "{$1}");
+        var normalized = PostmanVariableRegex().Replace(host, "{$1}");
         // Add https:// only when the string is neither already a URL nor a bare variable like {baseUrl}
-        return normalized.StartsWith("http") || normalized.StartsWith("{")
+        return normalized.StartsWith("http") || normalized.StartsWith('{')
             ? normalized
             : "https://" + normalized;
     }
@@ -229,7 +232,7 @@ public static class PostmanToOpenApiConverter
     private static OpenApiServer BuildServer(string serverUrl)
     {
         // Collect every {varname} token in the URL and declare them as server variables.
-        var varNames = Regex.Matches(serverUrl, @"\{([^}]+)\}")
+        var varNames = ServerVariableRegex().Matches(serverUrl)
             .Select(m => m.Groups[1].Value)
             .Distinct()
             .ToList();
@@ -262,7 +265,7 @@ public static class PostmanToOpenApiConverter
 
         var parameters = BuildParameters(request);
         if (parameters.Count > 0)
-            operation.Parameters = parameters.Cast<IOpenApiParameter>().ToList();
+            operation.Parameters = [.. parameters.Cast<IOpenApiParameter>()];
 
         if (HasRequestBody(request.Method) && request.Body?.Raw is not null)
             operation.RequestBody = BuildRequestBody(request);
@@ -287,10 +290,9 @@ public static class PostmanToOpenApiConverter
         // Path variables – prefer the explicit variable list (v2.1); fall back to
         // scanning path segments for {param} tokens (v2.0 / string-URL collections).
         var pathVars = request.Url?.Variable is { Count: > 0 }
-            ? request.Url.Variable
+            ? [.. request.Url.Variable
                 .Where(v => !string.IsNullOrEmpty(v.Key))
-                .Select(v => (v.Key, v.Description))
-                .ToList()
+                .Select(v => (v.Key, v.Description))]
             : ExtractPathVarNames(request.Url)
                 .Select(k => (Key: k, Description: (string?)null))
                 .ToList();
@@ -436,13 +438,13 @@ public static class PostmanToOpenApiConverter
 
         switch (version)
         {
-            case OpenApiVersion.OpenApi2_0:
+            case OpenApiVersion.OpenApi20:
                 document.SerializeAsV2(writer);
                 break;
-            case OpenApiVersion.OpenApi3_1:
+            case OpenApiVersion.OpenApi31:
                 document.SerializeAsV31(writer);
                 break;
-            case OpenApiVersion.OpenApi3_2:
+            case OpenApiVersion.OpenApi32:
                 document.SerializeAsV32(writer);
                 break;
             default:
@@ -452,13 +454,35 @@ public static class PostmanToOpenApiConverter
 
         return output.ToString();
     }
+
+    [GeneratedRegex(@"^https?://")]
+    private static partial Regex UrlSchemeRegex();
+    [GeneratedRegex(@"\{\{([^}]+)\}\}")]
+    private static partial Regex PostmanVariableRegex();
+    [GeneratedRegex(@"\{([^}]+)\}")]
+    private static partial Regex ServerVariableRegex();
 }
 
 /// <summary>Target OpenAPI specification version for serialization.</summary>
 public enum OpenApiVersion
 {
-    OpenApi3_0,
-    OpenApi3_1,
-    OpenApi3_2,
-    OpenApi2_0
+    /// <summary>
+    /// OpenAPI Specification version 2.0 (formerly Swagger 2.0).
+    /// </summary>
+    OpenApi20,
+
+    /// <summary>
+    /// OpenAPI Specification version 3.0.
+    /// </summary>
+    OpenApi30,
+
+    /// <summary>
+    /// OpenAPI Specification version 3.1.
+    /// </summary>
+    OpenApi31,
+
+    /// <summary>
+    /// OpenAPI Specification version 3.2.
+    /// </summary>
+    OpenApi32
 }

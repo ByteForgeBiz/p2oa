@@ -153,7 +153,9 @@ public class GitAuth
 /// <summary>Pre-request or post-response script.</summary>
 public class GitScript
 {
-    /// <summary>"http:beforeRequest" or "afterResponse".</summary>
+    /// <summary>
+    /// Gets or initializes the script type ("http:beforeRequest" for pre-request scripts or "afterResponse" for test scripts).
+    /// </summary>
     [YamlMember(Order = 0)]
     public required string Type { get; init; }
 
