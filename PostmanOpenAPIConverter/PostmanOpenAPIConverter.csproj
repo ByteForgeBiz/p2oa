@@ -6,7 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>p2oa</AssemblyName>
+    <Version>1.0.0.0</Version>
   </PropertyGroup>
+
+  <Import Project="..\DateVersioning.targets" Condition="Exists('..\DateVersioning.targets')" />
 
   <ItemGroup>
     <Compile Remove="Examples\**" />
