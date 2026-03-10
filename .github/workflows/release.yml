@@ -3,6 +3,9 @@ name: Release
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'PostmanOpenAPIConverter/**'
+      - 'installer/**'
 
 permissions:
   contents: write   # required to create releases and upload assets
