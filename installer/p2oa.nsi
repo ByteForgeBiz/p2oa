@@ -26,13 +26,22 @@ InstallDir        "$PROGRAMFILES64\p2oa"
 InstallDirRegKey  HKLM "Software\p2oa" "InstallDir"
 RequestExecutionLevel admin
 
-!define PRODUCT_NAME      "p2oa"
-!define PRODUCT_VERSION   "1.0.0"
-!define PUBLISHER         "Paulo Santos"
-!define UNINSTALL_KEY     "Software\Microsoft\Windows\CurrentVersion\Uninstall\p2oa"
-!define EXE_SRC           "..\PostmanOpenAPIConverter\bin\Release\net10.0\win-x64\publish\p2oa.exe"
+!define PRODUCT_NAME  "p2oa"
+!define PUBLISHER     "Paulo Santos"
+!define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\p2oa"
+!define EXE_SRC       "..\PostmanOpenAPIConverter\bin\Release\net10.0\win-x64\publish\p2oa.exe"
 
-VIProductVersion          "1.0.0.0"
+; PRODUCT_VERSION can be overridden at compile time: makensis /DPRODUCT_VERSION=1.0.26.0309b p2oa.nsi
+; VI_VERSION must be strictly numeric (x.x.x.x) for the PE header.
+; Pass it separately when PRODUCT_VERSION includes a letter suffix.
+!ifndef PRODUCT_VERSION
+  !define PRODUCT_VERSION "1.0.0.0"
+!endif
+!ifndef VI_VERSION
+  !define VI_VERSION "${PRODUCT_VERSION}"
+!endif
+
+VIProductVersion          "${VI_VERSION}"
 VIAddVersionKey "ProductName"     "${PRODUCT_NAME}"
 VIAddVersionKey "FileDescription" "p2oa Installer"
 VIAddVersionKey "FileVersion"     "${PRODUCT_VERSION}"
