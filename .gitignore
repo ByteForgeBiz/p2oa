@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Custom Files/Folders to ignore
 Samples/
+
+# Claude AI local settings (machine-specific, not for version control)
+.claude/settings.local.json
