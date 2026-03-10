@@ -4,7 +4,7 @@ applyTo: "**/*.cs"
 
 # Code Review Guidelines — p2oa (PostmanOpenAPIConverter)
 
-C# 13 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1) to OpenAPI YAML and to Postman's Git-compatible YAML format.
+C# 14 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1) to OpenAPI YAML and to Postman's Git-compatible YAML format.
 
 ---
 
