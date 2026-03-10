@@ -4,7 +4,7 @@ applyTo: "**/*.cs"
 
 # Code Review Guidelines — p2oa (PostmanOpenAPIConverter)
 
-C# 13 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1) to OpenAPI YAML and to Postman's Git-compatible YAML format.
+C# 14 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1) to OpenAPI YAML and to Postman's Git-compatible YAML format.
 
 ---
 
@@ -55,7 +55,7 @@ C# 13 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1
 
 - Do not construct file paths by concatenating user input directly; use `Path.Combine`.
 - Do not execute shell commands with user-supplied strings.
-- Do not log or expose raw exception messages to end users; surface a sanitized message instead.
+- Do not log or expose raw exception messages in outputs intended for non-developer end users or web-facing APIs; surface a sanitized message instead. For developer-focused CLI tools, it is acceptable to write detailed exception information (for example, `ex.Message`) to stderr.
 
 ## XML Documentation
 
@@ -65,6 +65,4 @@ C# 13 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1
 ## Patterns Specific to This Codebase
 
 - Custom `JsonConverter<T>` subclasses must handle all `JsonTokenType` cases and call `reader.Skip()` in the default branch.
-- MSBuild `.targets` files: use `BeforeTargets="GenerateAssemblyInfo"` (not `PrepareForBuild`) for SDK-style projects.
-- NSIS scripts: version defines must use `!ifndef` guards so they can be overridden from the command line.
 - Avoid `static` mutable state in converter classes; prefer `static readonly` for shared serializer options.
