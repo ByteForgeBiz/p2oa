@@ -19,7 +19,11 @@
       "Read(//tmp/**)",
       "Read(//c/Users/pauls/AppData/Local/Temp/**)",
       "Bash(unzip:*)",
-      "Bash(where makensis:*)"
+      "Bash(where makensis:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.github.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:github.blog)"
     ]
   }
 }
