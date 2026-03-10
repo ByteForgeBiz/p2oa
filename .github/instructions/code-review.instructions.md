@@ -65,6 +65,4 @@ C# 14 / .NET 10 console application. Converts Postman collections (v2.0 and v2.1
 ## Patterns Specific to This Codebase
 
 - Custom `JsonConverter<T>` subclasses must handle all `JsonTokenType` cases and call `reader.Skip()` in the default branch.
-- MSBuild `.targets` files: use `BeforeTargets="GenerateAssemblyInfo"` (not `PrepareForBuild`) for SDK-style projects.
-- NSIS scripts: version defines must use `!ifndef` guards so they can be overridden from the command line.
 - Avoid `static` mutable state in converter classes; prefer `static readonly` for shared serializer options.
