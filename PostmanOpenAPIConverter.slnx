@@ -1,13 +1,21 @@
 <Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
+  <Folder Name="/Git/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+  </Folder>
+  <Folder Name="/installer/">
+    <File Path="installer/build-installer.bat" />
+    <File Path="installer/p2oa.nsi" />
+  </Folder>
   <Folder Name="/ReadMe/">
     <File Path="README.md" />
   </Folder>
   <Folder Name="/ReadMe/resources/">
     <File Path="resources/p2oa.png" />
-  </Folder>
-  <Folder Name="/Solution Items/">
-    <File Path=".gitattributes" />
-    <File Path=".gitignore" />
   </Folder>
   <Project Path="PostmanOpenAPIConverter/PostmanOpenAPIConverter.csproj" />
 </Solution>
