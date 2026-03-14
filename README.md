@@ -71,7 +71,7 @@ C:\Tools\p2oa\p2oa.exe
 ## Options
 
 - **Portable Version**: Download `p2oa-portable.zip`, extract it, and run `p2oa.exe`. No installation required.
-- **Installer Version**: Download `p2oa-installer.zip`, extract and run the installer for a full installation.
+- **Installer Version**: Download `p2oa-installer.zip`, extract it, and run the installer for a full installation.
 
 Releases are attested using GitHub's build provenance attestation, providing verifiable proof of the build process and source code integrity. This ensures that downloaded artifacts are authentic and have not been tampered with.
 
