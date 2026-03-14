@@ -25,7 +25,7 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      # Compute the same version format used by DateVersioning.targets: 1.0.yy.MMdd
+      # Compute the date-based version format used by the project: 1.0.yy.MMdd
       # If the tag for today already exists, append b, c, d... for subsequent releases.
       # The unsuffixed version is implicitly the first release of the day.
       - name: Compute version
