@@ -8,7 +8,9 @@ on:
       - 'installer/**'
 
 permissions:
-  contents: write   # required to create releases and upload assets
+  contents: write      # required to create releases and upload assets
+  id-token: write      # required to mint the OIDC token for attestation
+  attestations: write  # required to persist the attestations
 
 jobs:
   release:
@@ -70,9 +72,19 @@ jobs:
           -p:DebugType=none
           -p:DebugSymbols=false
 
+      - name: Attest EXE
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'PostmanOpenAPIConverter/bin/Release/net10.0/win-x64/publish/p2oa.exe'
+
       - name: Build installer
         working-directory: installer
         run: makensis /DPRODUCT_VERSION=${{ steps.version.outputs.value }} /DVI_VERSION=${{ steps.version.outputs.vi_value }} p2oa.nsi
+
+      - name: Attest installer
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'installer/p2oa-setup.exe'
 
       - name: Create release
         uses: softprops/action-gh-release@v2
