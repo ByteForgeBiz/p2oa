@@ -71,10 +71,11 @@ jobs:
           --self-contained
           -p:DebugType=none
           -p:DebugSymbols=false
+          -o PostmanOpenAPIConverter/publish
 
       - name: Zip portable app
         shell: powershell
-        run: Compress-Archive -Path "PostmanOpenAPIConverter/bin/Release/net10.0/win-x64/publish/*" -DestinationPath "p2oa-portable.zip"
+        run: Compress-Archive -Path "PostmanOpenAPIConverter/publish/*" -DestinationPath "p2oa-portable.zip"
 
       - name: Attest portable ZIP
         uses: actions/attest-build-provenance@v2
