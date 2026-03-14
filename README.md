@@ -22,12 +22,12 @@ It acts as a bridge between Postman and OpenAPI workflows, allowing developers t
 
 # Key Features
 
-• Convert **Postman JSON collections → OpenAPI YAML**
-• Convert **Postman JSON → Postman Git YAML structure**
-• Convert **Postman Git repositories → Postman JSON collections**
-• Supports **Postman v2.0 and v2.1** collections
-• Generates **OpenAPI 3.1 by default**
-• CLI‑friendly for **automation and CI/CD pipelines**
+* Convert **Postman JSON collections → OpenAPI YAML**
+* Convert **Postman JSON → Postman Git YAML structure**
+* Convert **Postman Git repositories → Postman JSON collections**
+* Supports **Postman v2.0 and v2.1** collections
+* Generates **OpenAPI 3.1 by default**
+* CLI‑friendly for **automation and CI/CD pipelines**
 
 ---
 
@@ -219,15 +219,15 @@ produces a Postman collection equivalent to the original.
 
 Preserved data includes:
 
-• Collection metadata
-• Folder hierarchy
-• Request method and URL
-• Headers and query parameters
-• Request bodies
-• Authentication configuration
-• Pre-request scripts
-• Test scripts
-• Item ordering
+* Collection metadata
+* Folder hierarchy
+* Request method and URL
+* Headers and query parameters
+* Request bodies
+* Authentication configuration
+* Pre-request scripts
+* Test scripts
+* Item ordering
 
 ---
 
@@ -247,11 +247,11 @@ Examples/
 
 This example demonstrates:
 
-• folders
-• path parameters
-• query parameters
-• JSON request bodies
-• base URL variables
+* folders
+* path parameters
+* query parameters
+* JSON request bodies
+* base URL variables
 
 ---
 
@@ -259,9 +259,9 @@ This example demonstrates:
 
 Current limitations include:
 
-• Request body schemas are exported as generic `type: object`
-• Example responses are not converted into OpenAPI response definitions
-• Authentication settings are preserved internally but not yet mapped to OpenAPI `securitySchemes`
+* Request body schemas are exported as generic `type: object`
+* Example responses are not converted into OpenAPI response definitions
+* Authentication settings are preserved internally but not yet mapped to OpenAPI `securitySchemes`
 
 These areas may be expanded in future releases.
 
