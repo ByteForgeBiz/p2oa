@@ -1,5 +1,10 @@
 <Solution>
   <Folder Name="/.github/" />
+  <Folder Name="/.github/instructions/">
+    <File Path=".github/instructions/code-review.instructions.md" />
+    <File Path=".github/instructions/msbuild.instructions.md" />
+    <File Path=".github/instructions/nsis.instructions.md" />
+  </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/release.yml" />
   </Folder>
