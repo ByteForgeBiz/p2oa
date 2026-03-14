@@ -72,19 +72,27 @@ jobs:
           -p:DebugType=none
           -p:DebugSymbols=false
 
-      - name: Attest EXE
+      - name: Zip portable app
+        shell: powershell
+        run: Compress-Archive -Path "PostmanOpenAPIConverter/bin/Release/net10.0/win-x64/publish/*" -DestinationPath "p2oa-portable.zip"
+
+      - name: Attest portable ZIP
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: 'PostmanOpenAPIConverter/bin/Release/net10.0/win-x64/publish/p2oa.exe'
+          subject-path: 'p2oa-portable.zip'
 
       - name: Build installer
         working-directory: installer
         run: makensis /DPRODUCT_VERSION=${{ steps.version.outputs.value }} /DVI_VERSION=${{ steps.version.outputs.vi_value }} p2oa.nsi
 
-      - name: Attest installer
+      - name: Zip installer
+        shell: powershell
+        run: Compress-Archive -Path "installer/p2oa-setup.exe" -DestinationPath "p2oa-installer.zip"
+
+      - name: Attest installer ZIP
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: 'installer/p2oa-setup.exe'
+          subject-path: 'p2oa-installer.zip'
 
       - name: Create release
         uses: softprops/action-gh-release@v2
@@ -92,4 +100,6 @@ jobs:
           tag_name: v${{ steps.version.outputs.value }}
           name: v${{ steps.version.outputs.value }}
           generate_release_notes: true
-          files: installer/p2oa-setup.exe
+          files: |
+            p2oa-portable.zip
+            p2oa-installer.zip
