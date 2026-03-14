@@ -33,4 +33,11 @@
 
   </Target>
 
+  <Target Name="DebuggingVersioning" AfterTargets="Build">
+    <Message Importance="high" Text="=== Debugging Versioning =====================" />
+    <Message Importance="high" Text="Version: $(Version)" />
+    <Message Importance="high" Text="FileVersion: $(FileVersion)" />
+    <Message Importance="high" Text="AssemblyVersion: $(AssemblyVersion)" />
+  </Target>
+
 </Project>

@@ -3,6 +3,8 @@
 /// </summary>
 
 using System.CommandLine;
+using System.Linq;
+using System.Reflection;
 using PostmanOpenAPIConverter.Converters;
 
 // ── Options ──────────────────────────────────────────────────────────────────
@@ -24,14 +26,21 @@ var openApiVersionOption = new Option<string>("--openapi-version", ["-v"])
     DefaultValueFactory = _ => "3.1"
 };
 
+var noBannerOption = new Option<bool>("--no-banner", ["--quiet", "-q"])
+{
+    Description = "Do not print the banner"
+};
+
 // ── Commands ──────────────────────────────────────────────────────────────────
 
-var toOpenApiCommand = new Command("to-openapi", "Convert a Postman collection to an OpenAPI YAML specification");
-toOpenApiCommand.Add(inputOption);
-toOpenApiCommand.Add(outputOption);
-toOpenApiCommand.Add(openApiVersionOption);
+var toOpenApiCommand = new Command("to-openapi", "Convert a Postman collection to an OpenAPI YAML specification")
+{
+    inputOption,
+    outputOption,
+    openApiVersionOption
+};
 
-toOpenApiCommand.SetAction(async (ParseResult parseResult) =>
+toOpenApiCommand.SetAction(async parseResult =>
 {
     var input = parseResult.GetRequiredValue(inputOption);
     var output = parseResult.GetValue(outputOption);
@@ -71,11 +80,13 @@ var gitOutputOption = new Option<DirectoryInfo>("--output", ["-o"])
 };
 
 var toPostmanGitCommand = new Command("to-postman-git",
-    "Convert a Postman collection JSON to a Postman GIT-compatible YAML directory structure");
-toPostmanGitCommand.Add(inputOption);
-toPostmanGitCommand.Add(gitOutputOption);
+    "Convert a Postman collection JSON to a Postman GIT-compatible YAML directory structure")
+{
+    inputOption,
+    gitOutputOption
+};
 
-toPostmanGitCommand.SetAction(async (ParseResult parseResult) =>
+toPostmanGitCommand.SetAction(async parseResult =>
 {
     var input = parseResult.GetRequiredValue(inputOption);
     var output = parseResult.GetRequiredValue(gitOutputOption);
@@ -112,12 +123,14 @@ var fromGitCollectionOption = new Option<string?>("--collection", ["-c"])
 };
 
 var fromPostmanGitCommand = new Command("from-postman-git",
-    "Convert a Postman GIT-compatible YAML directory structure to a Postman collection JSON");
-fromPostmanGitCommand.Add(fromGitInputOption);
-fromPostmanGitCommand.Add(fromGitOutputOption);
-fromPostmanGitCommand.Add(fromGitCollectionOption);
+    "Convert a Postman GIT-compatible YAML directory structure to a Postman collection JSON")
+{
+    fromGitInputOption,
+    fromGitOutputOption,
+    fromGitCollectionOption
+};
 
-fromPostmanGitCommand.SetAction(async (ParseResult parseResult) =>
+fromPostmanGitCommand.SetAction(async parseResult =>
 {
     var input          = parseResult.GetRequiredValue(fromGitInputOption);
     var output         = parseResult.GetValue(fromGitOutputOption);
@@ -141,9 +154,39 @@ fromPostmanGitCommand.SetAction(async (ParseResult parseResult) =>
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
-var rootCommand = new RootCommand("Bidirectional converter between Postman collections and OpenAPI specifications");
-rootCommand.Add(toOpenApiCommand);
-rootCommand.Add(toPostmanGitCommand);
-rootCommand.Add(fromPostmanGitCommand);
+var rootCommand = new RootCommand("Bidirectional converter between Postman collections and OpenAPI specifications")
+{
+    toOpenApiCommand,
+    toPostmanGitCommand,
+    fromPostmanGitCommand
+};
+rootCommand.Options.Add(noBannerOption);
 
-return await rootCommand.Parse(args).InvokeAsync();
+var parseResult = rootCommand.Parse(args);
+var noBanner = parseResult.GetValue(noBannerOption);
+
+if (Console.OutputEncoding != System.Text.Encoding.UTF8)
+    Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+if (!noBanner)
+{
+    var asm = typeof(Program).Assembly;
+    var version = asm.GetName().Version?.ToString() ?? "1.0.0.0";
+    var company = asm.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? "Unknown";
+    var authorsAttr = asm.GetCustomAttributes<AssemblyMetadataAttribute>().Where(a => a.Key == "Authors" || a.Key == "Author").Select(x => x.Value);
+    var authors = String.Join(", ", authorsAttr);
+
+    Console.Error.WriteLine("██████╗ ██████╗  ██████╗  █████╗ ");
+    Console.Error.WriteLine("██╔══██╗╚════██╗██╔═══██╗██╔══██╗");
+    Console.Error.WriteLine("██████╔╝ █████╔╝██║   ██║███████║");
+    Console.Error.WriteLine("██╔═══╝ ██╔═══╝ ██║   ██║██╔══██║");
+    Console.Error.WriteLine("██║     ███████╗╚██████╔╝██║  ██║");
+    Console.Error.WriteLine("╚═╝     ╚══════╝ ╚═════╝ ╚═╝  ╚═╝");
+    Console.Error.WriteLine("                                 ");
+    Console.Error.WriteLine("Postman OpenAPI Converter");
+    Console.Error.WriteLine($"Version: {version}");
+    Console.Error.WriteLine($"Author : {authors}");
+    Console.Error.WriteLine($"Company: {company}");
+}
+
+return await parseResult.InvokeAsync();
