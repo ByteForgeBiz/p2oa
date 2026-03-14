@@ -50,25 +50,7 @@ p2oa to-openapi -i collection.json | openapi-generator generate \
 
 ---
 
-# Installation
-
-## Prebuilt Binary
-
-Download the latest executable from the **Releases** page.
-
-```
-p2oa.exe
-```
-
-Place it somewhere on your system `PATH`.
-
-Example:
-
-```
-C:\Tools\p2oa\p2oa.exe
-```
-
-## Options
+# Installation Options
 
 - **Portable Version**: Download `p2oa-portable.zip`, extract it, and run `p2oa.exe`. No installation required.
 - **Installer Version**: Download `p2oa-installer.zip`, extract and run the installer for a full installation.
