@@ -17,6 +17,7 @@
     <File Path="installer/p2oa.nsi" />
   </Folder>
   <Folder Name="/ReadMe/">
+    <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/ReadMe/resources/">

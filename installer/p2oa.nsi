@@ -29,7 +29,7 @@ RequestExecutionLevel admin
 !define PRODUCT_NAME  "p2oa"
 !define PUBLISHER     "Paulo Santos"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\p2oa"
-!define EXE_SRC       "..\PostmanOpenAPIConverter\bin\publish\p2oa.exe"
+!define EXE_FILES     "..\PostmanOpenAPIConverter\bin\publish"
 
 ; PRODUCT_VERSION can be overridden at compile time: makensis /DPRODUCT_VERSION=1.0.26.0309b p2oa.nsi
 ; VI_VERSION must be strictly numeric (x.x.x.x) for the PE header.
@@ -103,7 +103,7 @@ Section "p2oa (required)" SecMain
   SectionIn RO   ; always selected, cannot be deselected
 
   SetOutPath "$INSTDIR"
-  File "${EXE_SRC}"
+  File /r "${EXE_FILES}\*.*"
 
   ; Add install directory to the system PATH
   EnVar::SetHKLM
@@ -142,8 +142,7 @@ Section "Uninstall"
   Pop $0
 
   ; Remove files
-  Delete "$INSTDIR\p2oa.exe"
-  Delete "$INSTDIR\uninstall.exe"
+  RMDir /r "$INSTDIR\*.*"
 
   ; Remove directory
   RMDir "$INSTDIR"
