@@ -7,7 +7,7 @@
 ;
 ;  Build:
 ;    1. Publish the project first:
-;         dotnet publish ..\PostmanOpenAPIConverter -c Release -r win-x64 --self-contained
+;         dotnet publish ..\PostmanOpenAPIConverter -c Release -r win-x64 --self-contained -o ..\PostmanOpenAPIConverter\bin\publish
 ;    2. Compile this script:
 ;         makensis p2oa.nsi
 ; ============================================================================
