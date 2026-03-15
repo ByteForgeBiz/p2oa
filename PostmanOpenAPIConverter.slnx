@@ -22,5 +22,6 @@
   <Folder Name="/ReadMe/resources/">
     <File Path="resources/p2oa.png" />
   </Folder>
+  <Project Path="PostmanOpenAPIConverter.Tests/PostmanOpenAPIConverter.Tests.csproj" />
   <Project Path="PostmanOpenAPIConverter/PostmanOpenAPIConverter.csproj" />
 </Solution>

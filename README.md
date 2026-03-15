@@ -50,23 +50,31 @@ p2oa to-openapi -i collection.json | openapi-generator generate \
 
 ---
 
-# Installation
+# Installation Options
 
-## Prebuilt Binary
+- **Portable Version**: Download `p2oa-portable.zip`, extract it, and run `p2oa.exe`. No installation required.
+- **Installer Version**: Download `p2oa-installer.zip`, extract it, and run the installer for a full installation.
 
-Download the latest executable from the **Releases** page.
+Releases are attested using GitHub's build provenance attestation, providing verifiable proof of the build process and source code integrity. This ensures that downloaded artifacts are authentic and have not been tampered with.
 
-```
-p2oa.exe
-```
+### Verifying Attestations
 
-Place it somewhere on your system `PATH`.
+To verify the attestation of a downloaded artifact, you can use the GitHub CLI (`gh`):
 
-Example:
+1. Install the GitHub CLI from [cli.github.com](https://cli.github.com/).
+2. Run the following command, replacing `<artifact>` with the downloaded file (e.g., `p2oa-portable.zip`):
 
-```
-C:\Tools\p2oa\p2oa.exe
-```
+   ```bash
+   gh attestation verify <artifact> --repo PaulStSmith/PostmanOpenAPIConverter
+   ```
+
+   Example:
+
+   ```bash
+   gh attestation verify p2oa-portable.zip --repo PaulStSmith/PostmanOpenAPIConverter
+   ```
+
+If the verification succeeds, it confirms the artifact was built from the specified repository and has not been modified.
 
 ---
 

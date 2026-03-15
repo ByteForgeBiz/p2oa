@@ -9,7 +9,7 @@ public class GitCollection
     /// Gets the kind identifier for this entity (always "collection").
     /// </summary>
     [YamlMember(Alias = "$kind", Order = 0)]
-    public string Kind => "collection";
+    public string Kind { get; init; } = "collection";
 
     /// <summary>
     /// Gets or initializes the name of the collection or folder.
@@ -49,7 +49,7 @@ public class GitHttpRequest
     /// Gets the kind identifier for this entity (always "http-request").
     /// </summary>
     [YamlMember(Alias = "$kind", Order = 0)]
-    public string Kind => "http-request";
+    public string Kind { get; init; } = "http-request";
 
     /// <summary>
     /// Gets or initializes the description of the HTTP request.
