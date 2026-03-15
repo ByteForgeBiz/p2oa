@@ -7,7 +7,7 @@
 ;
 ;  Build:
 ;    1. Publish the project first:
-;         dotnet publish ..\PostmanOpenAPIConverter -c Release -r win-x64 --self-contained
+;         dotnet publish ..\PostmanOpenAPIConverter -c Release -r win-x64 --self-contained -o ..\PostmanOpenAPIConverter\bin\publish
 ;    2. Compile this script:
 ;         makensis p2oa.nsi
 ; ============================================================================
@@ -29,7 +29,7 @@ RequestExecutionLevel admin
 !define PRODUCT_NAME  "p2oa"
 !define PUBLISHER     "Paulo Santos"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\p2oa"
-!define EXE_SRC       "..\PostmanOpenAPIConverter\bin\Release\net10.0\win-x64\publish\p2oa.exe"
+!define EXE_SRC       "..\PostmanOpenAPIConverter\bin\publish\p2oa.exe"
 
 ; PRODUCT_VERSION can be overridden at compile time: makensis /DPRODUCT_VERSION=1.0.26.0309b p2oa.nsi
 ; VI_VERSION must be strictly numeric (x.x.x.x) for the PE header.

@@ -71,7 +71,8 @@ jobs:
           --self-contained
           -p:DebugType=none
           -p:DebugSymbols=false
-          -o PostmanOpenAPIConverter/publish
+          -p:NoCostura=true
+          -o PostmanOpenAPIConverter/bin/publish
 
       - name: Zip portable app
         shell: powershell
