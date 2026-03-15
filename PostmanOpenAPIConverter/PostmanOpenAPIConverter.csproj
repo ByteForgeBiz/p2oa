@@ -43,4 +43,8 @@
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="PostmanOpenAPIConverter.Tests" />
+  </ItemGroup>
+
 </Project>

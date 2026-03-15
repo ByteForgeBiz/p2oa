@@ -219,7 +219,7 @@ public static partial class PostmanToOpenApiConverter
         if (string.IsNullOrEmpty(host)) return host;
         var normalized = PostmanVariableRegex().Replace(host, "{$1}");
         // Add https:// only when the string is neither already a URL nor a bare variable like {baseUrl}
-        return normalized.StartsWith("http") || normalized.StartsWith('{')
+        return normalized.StartsWith("http")
             ? normalized
             : "https://" + normalized;
     }
