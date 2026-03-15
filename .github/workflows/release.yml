@@ -6,6 +6,7 @@ on:
     paths:
       - 'PostmanOpenAPIConverter/**'
       - 'installer/**'
+  workflow_dispatch:
 
 permissions:
   contents: write      # required to create releases and upload assets
