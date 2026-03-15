@@ -71,6 +71,7 @@ jobs:
           --self-contained
           -p:DebugType=none
           -p:DebugSymbols=false
+          -p:NoCostura=true
           -o PostmanOpenAPIConverter/publish
 
       - name: Zip portable app
