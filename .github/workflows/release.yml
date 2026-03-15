@@ -72,7 +72,7 @@ jobs:
           -p:DebugType=none
           -p:DebugSymbols=false
           -p:NoCostura=true
-          -o PostmanOpenAPIConverter/publish
+          -o PostmanOpenAPIConverter/bin/publish
 
       - name: Zip portable app
         shell: powershell
