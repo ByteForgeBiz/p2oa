@@ -1,6 +1,5 @@
 @echo off
-set delayedexpansion enabled
-setlocal
+setlocal EnableDelayedExpansion
 
 set PROJECT_FOLDER=%~dp0..\PostmanOpenAPIConverter
 set PROJECT=%PROJECT_FOLDER%\PostmanOpenAPIConverter.csproj
