@@ -76,7 +76,7 @@ jobs:
 
       - name: Zip portable app
         shell: powershell
-        run: Compress-Archive -Path "PostmanOpenAPIConverter/publish/*" -DestinationPath "p2oa-portable.zip"
+        run: Compress-Archive -Path "PostmanOpenAPIConverter/bin/publish/*" -DestinationPath "p2oa-portable.zip"
 
       - name: Attest portable ZIP
         uses: actions/attest-build-provenance@v2
