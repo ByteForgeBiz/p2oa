@@ -41,12 +41,12 @@ RequestExecutionLevel admin
   !define VI_VERSION "${PRODUCT_VERSION}"
 !endif
 
-VIProductVersion          "${VI_VERSION}"
+VIProductVersion                  "${VI_VERSION}"
 VIAddVersionKey "ProductName"     "${PRODUCT_NAME}"
 VIAddVersionKey "FileDescription" "p2oa Installer"
 VIAddVersionKey "FileVersion"     "${PRODUCT_VERSION}"
 VIAddVersionKey "ProductVersion"  "${PRODUCT_VERSION}"
-VIAddVersionKey "LegalCopyright"  "MIT License — ${PUBLISHER}"
+VIAddVersionKey "LegalCopyright"  "Copyright (c) ${PUBLISHER}"
 
 ; ----------------------------------------------------------------------------
 ;  MUI Settings
@@ -145,7 +145,7 @@ Section "Uninstall"
   Delete "$INSTDIR\p2oa.exe"
   Delete "$INSTDIR\uninstall.exe"
 
-  ; Remove directory (only if empty — won't delete user files if any were placed here)
+  ; Remove directory
   RMDir "$INSTDIR"
 
   ; Clean up registry
