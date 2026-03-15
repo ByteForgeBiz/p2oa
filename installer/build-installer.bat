@@ -2,9 +2,9 @@
 set delayedexpansion enabled
 setlocal
 
-set PROJECT_FOLDER=..\PostmanOpenAPIConverter
+set PROJECT_FOLDER=%~dp0..\PostmanOpenAPIConverter
 set PROJECT=%PROJECT_FOLDER%\PostmanOpenAPIConverter.csproj
-set SCRIPT=p2oa.nsi
+set SCRIPT=%~dp0p2oa.nsi
 
 where makensis >nul 2>&1
 if errorlevel 1 (
