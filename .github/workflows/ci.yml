@@ -7,12 +7,6 @@ on:
       - 'PostmanOpenAPIConverter/**'
       - 'PostmanOpenAPIConverter.Tests/**'
       - '.github/workflows/ci.yml'
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'PostmanOpenAPIConverter/**'
-      - 'PostmanOpenAPIConverter.Tests/**'
-      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 jobs:
