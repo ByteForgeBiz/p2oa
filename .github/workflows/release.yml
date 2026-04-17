@@ -71,6 +71,7 @@ jobs:
                 $null = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName" 2>$null
                 $exitCode = $LASTEXITCODE
                 Write-Host "gh api exit code for ${TagName}: $exitCode"
+                $global:LASTEXITCODE = 0
                 return $exitCode -eq 0
               }
               finally {
@@ -98,6 +99,7 @@ jobs:
             "value=$version" >> $env:GITHUB_OUTPUT
             "vi_value=$base" >> $env:GITHUB_OUTPUT
             Write-Host "Version outputs written successfully."
+            $global:LASTEXITCODE = 0
           }
           catch {
             Write-Host "Version computation failed."
