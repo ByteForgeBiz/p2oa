@@ -3,6 +3,12 @@ param(
     [ValidateSet('merge', 'rebase')]
     [string]$Mode = 'rebase',
 
+    [string]$BaseBranch,
+
+    [string]$RemoteName = 'origin',
+
+    [switch]$NoPush,
+
     [switch]$KeepTempFile
 )
 
@@ -107,6 +113,16 @@ function Get-TrimmedGitOutput {
     return ([string]$output).Trim()
 }
 
+function Test-GitRefExists {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RefName
+    )
+
+    git -C $repoRoot show-ref --verify --quiet $RefName
+    return $LASTEXITCODE -eq 0
+}
+
 function Test-BuildArtifactStatus {
     param(
         [Parameter(Mandatory = $true)]
@@ -156,6 +172,56 @@ function Get-BuildArtifactDirectory {
     return "$prefix/$folderName"
 }
 
+function Get-BaseBranchNameFromRef {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RefName
+    )
+
+    $pathParts = $RefName -split '/'
+    if ($pathParts.Count -eq 0) {
+        return $null
+    }
+
+    return $pathParts[-1]
+}
+
+function Resolve-BaseBranch {
+    if (-not [string]::IsNullOrWhiteSpace($BaseBranch)) {
+        return $BaseBranch.Trim()
+    }
+
+    $remoteHeadRef = git -C $repoRoot symbolic-ref --quiet "refs/remotes/$RemoteName/HEAD"
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($remoteHeadRef)) {
+        return Get-BaseBranchNameFromRef ([string]$remoteHeadRef).Trim()
+    }
+
+    $candidateRefs = @(
+        "refs/heads/master",
+        "refs/heads/main",
+        "refs/remotes/$RemoteName/master",
+        "refs/remotes/$RemoteName/main"
+    )
+
+    foreach ($candidateRef in $candidateRefs) {
+        if (Test-GitRefExists $candidateRef) {
+            return Get-BaseBranchNameFromRef $candidateRef
+        }
+    }
+
+    throw "Unable to determine the base branch automatically. Specify -BaseBranch explicitly."
+}
+
+function Test-AnyGitState {
+    foreach ($stateFile in $stateFiles) {
+        if (Test-GitStateFile $stateFile) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 $repoRoot = (Resolve-Path $PSScriptRoot).Path
 $tempBat = $null
 $stashCreated = $false
@@ -166,14 +232,25 @@ $exitCode = 0
 git -C $repoRoot rev-parse --show-toplevel | Out-Null
 Assert-GitSuccess "This script must be run from inside a git repository."
 
+git -C $repoRoot remote get-url $RemoteName | Out-Null
+Assert-GitSuccess "Remote '$RemoteName' was not found."
+
 $currentBranch = Get-TrimmedGitOutput @('branch', '--show-current')
 
 if ([string]::IsNullOrWhiteSpace($currentBranch)) {
     throw "Detached HEAD is not supported. Check out a branch first."
 }
 
-if ($currentBranch -eq 'master') {
-    throw "You are already on 'master'. Switch to a feature branch before running this script."
+$resolvedBaseBranch = Resolve-BaseBranch
+$baseBranchRef = "refs/heads/$resolvedBaseBranch"
+$remoteBaseBranchRef = "refs/remotes/$RemoteName/$resolvedBaseBranch"
+
+if (-not (Test-GitRefExists $baseBranchRef) -and -not (Test-GitRefExists $remoteBaseBranchRef)) {
+    throw "Base branch '$resolvedBaseBranch' was not found locally. Fetch it or specify a different -BaseBranch."
+}
+
+if ($currentBranch.Equals($resolvedBaseBranch, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "You are already on '$resolvedBaseBranch'. Switch to a feature branch before running this script."
 }
 
 $gitDir = (git -C $repoRoot rev-parse --git-dir).Trim()
@@ -257,9 +334,12 @@ if ($stashRelevantStatus.Count -gt 0) {
     $stashCreated = $true
 }
 
-$tempBat = Join-Path ([System.IO.Path]::GetTempPath()) ("update-from-master-{0}.bat" -f ([guid]::NewGuid().ToString('N')))
+$tempBat = Join-Path ([System.IO.Path]::GetTempPath()) ("update-from-base-{0}.bat" -f ([guid]::NewGuid().ToString('N')))
 $repoRootEscaped = $repoRoot.Replace('%', '%%').Replace('"', '""')
 $currentBranchEscaped = $currentBranch.Replace('%', '%%').Replace('"', '""')
+$baseBranchEscaped = $resolvedBaseBranch.Replace('%', '%%').Replace('"', '""')
+$remoteNameEscaped = $RemoteName.Replace('%', '%%').Replace('"', '""')
+$pushChanges = if ($NoPush) { 'false' } else { 'true' }
 
 $batchContent = @"
 @echo off
@@ -267,19 +347,22 @@ setlocal
 
 set "REPO_ROOT=$repoRootEscaped"
 set "ORIGINAL_BRANCH=$currentBranchEscaped"
+set "BASE_BRANCH=$baseBranchEscaped"
+set "REMOTE_NAME=$remoteNameEscaped"
 set "MODE=$Mode"
+set "PUSH_CHANGES=$pushChanges"
 
 cd /d "%REPO_ROOT%"
 if errorlevel 1 exit /b 1
 
 echo.
-echo ^> git switch master
-git switch master
+echo ^> git switch "%BASE_BRANCH%"
+git switch -- "%BASE_BRANCH%"
 if errorlevel 1 exit /b 1
 
 echo.
-echo ^> git pull --ff-only origin master
-git pull --ff-only origin master
+echo ^> git pull --ff-only "%REMOTE_NAME%" "%BASE_BRANCH%"
+git pull --ff-only "%REMOTE_NAME%" "%BASE_BRANCH%"
 if errorlevel 1 exit /b 1
 
 echo.
@@ -289,23 +372,28 @@ if errorlevel 1 exit /b 1
 
 echo.
 if /i "%MODE%"=="rebase" (
-    echo ^> git rebase master
-    git rebase master
+    echo ^> git rebase "%BASE_BRANCH%"
+    git rebase "%BASE_BRANCH%"
 ) else (
-    echo ^> git merge master
-    git merge master
+    echo ^> git merge "%BASE_BRANCH%"
+    git merge "%BASE_BRANCH%"
 )
 if errorlevel 1 exit /b 1
 
-echo.
-if /i "%MODE%"=="rebase" (
-    echo ^> git push --force-with-lease origin "%ORIGINAL_BRANCH%"
-    git push --force-with-lease origin "%ORIGINAL_BRANCH%"
+if /i "%PUSH_CHANGES%"=="true" (
+    echo.
+    if /i "%MODE%"=="rebase" (
+        echo ^> git push --force-with-lease "%REMOTE_NAME%" "%ORIGINAL_BRANCH%"
+        git push --force-with-lease "%REMOTE_NAME%" "%ORIGINAL_BRANCH%"
+    ) else (
+        echo ^> git push "%REMOTE_NAME%" "%ORIGINAL_BRANCH%"
+        git push "%REMOTE_NAME%" "%ORIGINAL_BRANCH%"
+    )
+    if errorlevel 1 exit /b 1
 ) else (
-    echo ^> git push origin "%ORIGINAL_BRANCH%"
-    git push origin "%ORIGINAL_BRANCH%"
+    echo.
+    echo ^> Push skipped because -NoPush was specified.
 )
-if errorlevel 1 exit /b 1
 
 echo.
 echo Done.
@@ -315,7 +403,10 @@ exit /b 0
 Set-Content -LiteralPath $tempBat -Value $batchContent -Encoding Default
 
 Write-Host "Original branch: $currentBranch"
+Write-Host "Base branch: $resolvedBaseBranch"
 Write-Host "Integration mode: $Mode"
+Write-Host "Remote: $RemoteName"
+Write-Host "Push changes: $(-not $NoPush)"
 Write-Host "Temporary runner: $tempBat"
 
 if ($stashCreated) {
@@ -337,15 +428,9 @@ finally {
         Write-Warning "Unable to determine the current branch during cleanup. Continuing with stash restoration and temp-file cleanup."
     }
 
+    $hasGitState = $false
     if (-not [string]::IsNullOrWhiteSpace($branchAfterRun) -and $branchAfterRun -ne $currentBranch) {
-        $hasGitState = $false
-
-        foreach ($stateFile in $stateFiles) {
-            if (Test-GitStateFile $stateFile) {
-                $hasGitState = $true
-                break
-            }
-        }
+        $hasGitState = Test-AnyGitState
 
         if (-not $hasGitState) {
             git -C $repoRoot switch -- $currentBranch | Out-Null
@@ -353,23 +438,33 @@ finally {
 
             if ($switchBackExitCode -ne 0) {
                 Write-Warning "Failed to switch back to the original branch '$currentBranch' during cleanup. You may still be on '$branchAfterRun'."
+            } else {
+                $branchAfterRun = $currentBranch
             }
         }
     }
 
-    if ($stashCreated -and -not [string]::IsNullOrWhiteSpace($stashRef)) {
-        git -C $repoRoot stash apply --index $stashRef | Out-Null
+    $hasGitState = Test-AnyGitState
 
-        if ($LASTEXITCODE -eq 0) {
-            git -C $repoRoot stash drop $stashRef | Out-Null
+    if ($stashCreated -and -not [string]::IsNullOrWhiteSpace($stashRef)) {
+        if ($hasGitState) {
+            Write-Warning "Skipped stash restoration because the repository is in the middle of a git operation. The stash '$stashRef' was kept."
+        } elseif ($branchAfterRun -ne $currentBranch) {
+            Write-Warning "Skipped stash restoration because the repository is not back on '$currentBranch'. The stash '$stashRef' was kept."
+        } else {
+            git -C $repoRoot stash apply --index $stashRef | Out-Null
 
             if ($LASTEXITCODE -eq 0) {
-                Write-Host "Restored stashed worktree from: $stashName"
+                git -C $repoRoot stash drop $stashRef | Out-Null
+
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "Restored stashed worktree from: $stashName"
+                } else {
+                    Write-Warning "The stashed worktree was applied, but dropping '$stashRef' failed."
+                }
             } else {
-                Write-Warning "The stashed worktree was applied, but dropping '$stashRef' failed."
+                Write-Warning "Failed to restore stashed worktree from '$stashRef'. The stash was kept."
             }
-        } else {
-            Write-Warning "Failed to restore stashed worktree from '$stashRef'. The stash was kept."
         }
     }
 
@@ -381,10 +476,12 @@ finally {
     }
 }
 
+$pushSummary = if ($NoPush) { 'push skipped' } else { 'push attempted' }
+
 if ($stashCreated) {
-    Write-Host "Summary: stashed dirty worktree as '$stashName', updated from master using '$Mode', and attempted to restore the stash."
+    Write-Host "Summary: stashed dirty worktree as '$stashName', updated from '$resolvedBaseBranch' using '$Mode', and $pushSummary."
 } else {
-    Write-Host "Summary: no stash-worthy changes outside ignored dot folders were found, updated from master using '$Mode', and no stash was needed."
+    Write-Host "Summary: no stash-worthy changes outside ignored dot folders were found, updated from '$resolvedBaseBranch' using '$Mode', and $pushSummary."
 }
 
 exit $exitCode
