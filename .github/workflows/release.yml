@@ -60,24 +60,44 @@ jobs:
 
             $base = "{0}.{1}" -f $baseVersion, (Get-Date -Format 'yy.MMdd')
             $version = $base
+            Write-Host "Computed base version: $base"
 
             function Test-ReleaseTagExists([string]$TagName) {
-              $null = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName" 2>$null
-              return $LASTEXITCODE -eq 0
+              Write-Host "Checking for release tag: $TagName"
+
+              $previousPreference = $ErrorActionPreference
+              $ErrorActionPreference = 'Continue'
+              try {
+                $null = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName" 2>$null
+                $exitCode = $LASTEXITCODE
+                Write-Host "gh api exit code for ${TagName}: $exitCode"
+                return $exitCode -eq 0
+              }
+              finally {
+                $ErrorActionPreference = $previousPreference
+              }
             }
 
             if (Test-ReleaseTagExists "v$base") {
+              Write-Host "Base tag already exists; searching for suffix."
               foreach ($suffix in 'b'..'z') {
                 $candidate = "$base$suffix"
                 if (-not (Test-ReleaseTagExists "v$candidate")) {
                   $version = $candidate
+                  Write-Host "Selected suffixed version: $version"
                   break
                 }
               }
             }
+            else {
+              Write-Host "Base tag does not exist; using version: $version"
+            }
 
+            Write-Host "GITHUB_OUTPUT path: $env:GITHUB_OUTPUT"
+            Write-Host "Writing outputs for version: $version and VI version: $base"
             "value=$version" >> $env:GITHUB_OUTPUT
             "vi_value=$base" >> $env:GITHUB_OUTPUT
+            Write-Host "Version outputs written successfully."
           }
           catch {
             Write-Host "Version computation failed."
