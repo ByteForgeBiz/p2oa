@@ -6,7 +6,9 @@
     <File Path=".github/instructions/nsis.instructions.md" />
   </Folder>
   <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/ci.yml" />
     <File Path=".github/workflows/release.yml" />
+    <File Path=".github/workflows/publish-winget.yml" />
   </Folder>
   <Folder Name="/Git/">
     <File Path=".gitattributes" />

@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>p2oa</AssemblyName>
-    <BaseVersion>1.0.0.0</BaseVersion>
+    <BaseVersion>1.0</BaseVersion>
     <_DateComponent>$([System.DateTime]::Now.ToString("yy.MMdd"))</_DateComponent>
-    <Version>$(BaseVersion.Split('.')[0]).$(BaseVersion.Split('.')[1]).$(_DateComponent)</Version>
+    <Version>$(BaseVersion).$(_DateComponent)</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <Company>ByteForge</Company>

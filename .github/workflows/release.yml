@@ -33,21 +33,31 @@ jobs:
         id: version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
+        shell: pwsh
         run: |
-          BASE="1.0.$(date +'%y.%m%d')"
-          if ! gh release view "v${BASE}" --repo "$GITHUB_REPOSITORY" &>/dev/null; then
-            VERSION="$BASE"
-          else
-            for suffix in b c d e f g h i j k l m n o p q r s t u v w x y z; do
-              if ! gh release view "v${BASE}${suffix}" --repo "$GITHUB_REPOSITORY" &>/dev/null; then
-                VERSION="${BASE}${suffix}"
+          [xml]$csproj = Get-Content "PostmanOpenAPIConverter/PostmanOpenAPIConverter.csproj"
+          $baseVersion = $csproj.Project.PropertyGroup.BaseVersion | Where-Object { $_ } | Select-Object -First 1
+          if (-not $baseVersion) {
+            throw "BaseVersion was not found in PostmanOpenAPIConverter.csproj"
+          }
+
+          $base = "{0}.{1}" -f $baseVersion, (Get-Date -Format 'yy.MMdd')
+          $version = $base
+
+          $null = gh release view "v$base" --repo "$env:GITHUB_REPOSITORY" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            foreach ($suffix in 'b'..'z') {
+              $candidate = "$base$suffix"
+              $null = gh release view "v$candidate" --repo "$env:GITHUB_REPOSITORY" 2>$null
+              if ($LASTEXITCODE -ne 0) {
+                $version = $candidate
                 break
-              fi
-            done
-          fi
-          echo "value=$VERSION"   >> "$GITHUB_OUTPUT"
-          echo "vi_value=$BASE"   >> "$GITHUB_OUTPUT"
+              }
+            }
+          }
+
+          "value=$version" >> $env:GITHUB_OUTPUT
+          "vi_value=$base" >> $env:GITHUB_OUTPUT
 
       - name: Install NSIS
         shell: powershell
@@ -104,4 +114,5 @@ jobs:
           generate_release_notes: true
           files: |
             p2oa-portable.zip
+            installer/p2oa-setup.exe
             p2oa-installer.zip

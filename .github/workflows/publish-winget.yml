@@ -1,0 +1,214 @@
+name: Publish to Winget
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    permissions:
+      contents: read    # required for actions/checkout
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Submit to winget
+        shell: pwsh
+        env:
+          ORG_GH_TOKEN: ${{ secrets.ORG_TOKEN }}
+          PJ_GH_TOKEN: ${{ secrets.PJ_TOKEN }}
+        run: |
+          $repoOwner        = "${{ github.repository_owner }}"
+          $tag              = "${{ github.event.release.tag_name }}"
+          $version          = $tag.TrimStart('v')
+          $packageId        = "ByteForge.PostmanOpenAPIConverter"
+          $publisherSegment = ($packageId -split '\.')[0]
+          $packageSegment   = ($packageId -split '\.')[1]
+          $firstLetter      = $publisherSegment.Substring(0, 1).ToLowerInvariant()
+          $manifestsOut     = "./winget-manifests"
+          $installerName    = "p2oa-setup.exe"
+          $installerUrl     = "https://github.com/${{ github.repository }}/releases/download/$tag/$installerName"
+          $wingetToken      = $env:PJ_GH_TOKEN
+
+          # Download the installer to compute SHA256
+          $env:GH_TOKEN = $env:ORG_GH_TOKEN
+          gh release download $tag --pattern $installerName --output temp.exe
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to download release asset $installerName from tag $tag"
+            exit 1
+          }
+          $installerSha256 = (Get-FileHash "temp.exe" -Algorithm SHA256).Hash.ToUpper()
+          Write-Host "Installer SHA256: $installerSha256"
+
+          # Detect whether $packageId already exists in winget-pkgs
+          # to determine whether the PR title says "New package" or "New version".
+          $apiUrl  = "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/$firstLetter/$publisherSegment/$packageSegment"
+          $headers = @{ Authorization = "Bearer $wingetToken"; "User-Agent" = "GitHub-Actions" }
+          $exists  = $false
+          try {
+            $null  = Invoke-WebRequest -Uri $apiUrl -Headers $headers -Method Head -ErrorAction Stop
+            $exists = $true
+          } catch {
+            $statusCode = $null
+            if ($_.Exception -and $_.Exception.Response -and $_.Exception.Response.StatusCode) {
+              $statusCode = [int]$_.Exception.Response.StatusCode
+            }
+            if ($statusCode -eq 404) {
+              Write-Host "Package not found in winget-pkgs (HTTP 404). Treating as first-time submission."
+              $exists = $false
+            } else {
+              Write-Error ("Failed to query winget-pkgs GitHub API. HTTP status: {0}" -f ($statusCode ?? "unknown"))
+              throw
+            }
+          }
+
+          # Always build manifests manually to guarantee ManifestVersion 1.12.0.
+          # wingetcreate update emits 1.6.0 manifests which are rejected by the pipeline.
+          $action = if ($exists) { "update" } else { "new" }
+          Write-Host "Package $action — generating manifest for v$version"
+
+          $manifestDir = "$manifestsOut/manifests/$firstLetter/$publisherSegment/$packageSegment/$version"
+          New-Item -ItemType Directory -Force -Path $manifestDir | Out-Null
+
+          # PowerShell here-strings require "@ at column 0, which conflicts with
+          # YAML indentation. Use string arrays joined with newlines instead.
+          $n = "`n"
+          $PackageId = $packageId
+
+          #
+          # The Version manifest
+          #
+          @("# yaml-language-server: `$schema=https://aka.ms/winget-manifest.version.1.12.0.schema.json",
+            "",
+            "PackageIdentifier: $PackageId",
+            "PackageVersion: $version",
+            "DefaultLocale: en-US",
+            "ManifestType: version",
+            "ManifestVersion: 1.12.0",
+            "") -join $n |
+            Set-Content "$manifestDir/$packageId.yaml" -Encoding UTF8 -NoNewline
+
+          #
+          # The Default Locale manifest
+          #
+          @("# yaml-language-server: `$schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json",
+            "",
+            "PackageIdentifier: $PackageId",
+            "PackageVersion: $version",
+            "PackageLocale: en-US",
+            "Publisher: ByteForge",
+            "PublisherUrl: https://github.com/$repoOwner",
+            "PublisherSupportUrl: https://github.com/${{ github.repository }}/issues",
+            "PackageName: Postman OpenAPI Converter",
+            "PackageUrl: https://github.com/${{ github.repository }}",
+            "License: MIT",
+            "LicenseUrl: https://github.com/${{ github.repository }}/blob/${{ github.event.repository.default_branch }}/LICENSE",
+            "ShortDescription: Command-line utility for converting Postman collections to OpenAPI specifications",
+            "ManifestType: defaultLocale",
+            "ManifestVersion: 1.12.0",
+            "") -join $n |
+            Set-Content "$manifestDir/$packageId.locale.en-US.yaml" -Encoding UTF8 -NoNewline
+
+          #
+          # The Installer manifest
+          #
+          @("# yaml-language-server: `$schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json",
+            "",
+            "PackageIdentifier: $PackageId",
+            "PackageVersion: $version",
+            "Installers:",
+            "- Architecture: x64",
+            "  InstallerUrl: $installerUrl",
+            "  InstallerSha256: $installerSha256",
+            "  InstallerType: exe",
+            "  InstallerSwitches:",
+            "    Silent: \"/S\"",
+            "    SilentWithProgress: \"/S\"",
+            "ManifestType: installer",
+            "ManifestVersion: 1.12.0",
+            "") -join $n |
+            Set-Content "$manifestDir/$packageId.installer.yaml" -Encoding UTF8 -NoNewline
+
+          # Locate the generated YAML files.
+          $yamlFiles = Get-ChildItem -Path $manifestsOut -Recurse -Filter "*.yaml"
+          if ($yamlFiles.Count -eq 0) {
+            Write-Error "No YAML manifest files were found in $manifestsOut"
+            exit 1
+          }
+          Write-Host "Generated $($yamlFiles.Count) manifest file(s):"
+          $yamlFiles | ForEach-Object { Write-Host "  $($_.FullName)" }
+
+          # Identify the token owner (the fork will live under their personal account)
+          $env:GH_TOKEN = $env:PJ_GH_TOKEN
+          $forkOwner    = gh api user --jq '.login'
+          Write-Host "Submitting PR as: $forkOwner"
+
+          # Ensure a fork of microsoft/winget-pkgs exists under the personal account
+          gh repo fork microsoft/winget-pkgs --clone=false
+          Write-Host "Fork ready at $forkOwner/winget-pkgs"
+
+          # Get the current HEAD SHA of microsoft/winget-pkgs master
+          $baseSha = gh api repos/microsoft/winget-pkgs/git/refs/heads/master --jq '.object.sha'
+
+          # Create (or recreate) a branch on the fork
+          $branchName = "postman-openapi-converter-v$version"
+          $existingRef = gh api "repos/$forkOwner/winget-pkgs/git/refs/heads/$branchName" 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Branch $branchName already exists — deleting and recreating"
+            gh api "repos/$forkOwner/winget-pkgs/git/refs/heads/$branchName" -X DELETE
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to delete existing branch $branchName"
+              exit 1
+            }
+          }
+          gh api "repos/$forkOwner/winget-pkgs/git/refs" `
+            -X POST `
+            -f ref="refs/heads/$branchName" `
+            -f sha="$baseSha"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to create branch $branchName on fork"
+            exit 1
+          }
+          Write-Host "Created branch $branchName"
+
+          # Upload each YAML file to the correct path in the fork branch.
+          # Build the JSON body and pipe via --input to avoid argument-length
+          # issues when passing large base64 strings through -f flags.
+          $targetBase = "manifests/$firstLetter/$publisherSegment/$packageSegment/$version"
+          foreach ($file in $yamlFiles) {
+            $encoded    = [Convert]::ToBase64String(
+                            [System.Text.Encoding]::UTF8.GetBytes(
+                              (Get-Content $file.FullName -Raw)))
+            $targetPath = "$targetBase/$($file.Name)"
+            $body       = [PSCustomObject]@{
+                            message = "Add $packageId $version"
+                            content = $encoded
+                            branch  = $branchName
+                          } | ConvertTo-Json -Compress
+            Write-Host "Uploading $($file.Name) → $targetPath"
+            $body | gh api "repos/$forkOwner/winget-pkgs/contents/$targetPath" `
+              -X PUT --input -
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to upload $($file.Name) to $targetPath"
+              exit 1
+            }
+            Write-Host "  ✓ Uploaded successfully"
+          }
+
+          # Open the PR with the required winget title format
+          $prTitle = if ($exists) {
+            "New version: $packageId version $version"
+          } else {
+            "New package: $packageId version $version"
+          }
+          $prBody  = "Automated submission from [$packageId v$version](https://github.com/${{ github.repository }}/releases/tag/$tag)."
+
+          Write-Host "Opening PR: $prTitle"
+          gh pr create `
+            --repo  microsoft/winget-pkgs `
+            --head  "$forkOwner`:$branchName" `
+            --base  master `
+            --title $prTitle `
+            --body  $prBody
