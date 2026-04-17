@@ -65,29 +65,44 @@ jobs:
             function Test-ReleaseTagExists([string]$TagName) {
               Write-Host "Checking for release tag: $TagName"
 
-              $previousPreference = $ErrorActionPreference
-              $ErrorActionPreference = 'Continue'
               try {
-                $null = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName" 2>$null
-                $exitCode = $LASTEXITCODE
-                Write-Host "gh api exit code for ${TagName}: $exitCode"
-                $global:LASTEXITCODE = 0
-                return $exitCode -eq 0
+                $headers = @{
+                  Authorization = "Bearer $env:GH_TOKEN"
+                  Accept = "application/vnd.github+json"
+                  "X-GitHub-Api-Version" = "2022-11-28"
+                }
+                $url = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName"
+                $null = Invoke-RestMethod -Uri $url -Headers $headers
+                Write-Host "Release tag exists: $TagName"
+                return $true
               }
-              finally {
-                $ErrorActionPreference = $previousPreference
+              catch {
+                $statusCode = $_.Exception.Response.StatusCode.value__
+                Write-Host "Release tag lookup status for ${TagName}: $statusCode"
+
+                if ($statusCode -eq 404) {
+                  return $false
+                }
+
+                throw "Failed to check release tag '$TagName' via GitHub API (status $statusCode)."
               }
             }
 
             if (Test-ReleaseTagExists "v$base") {
               Write-Host "Base tag already exists; searching for suffix."
+              $foundAvailableSuffix = $false
               foreach ($suffix in 'b'..'z') {
                 $candidate = "$base$suffix"
                 if (-not (Test-ReleaseTagExists "v$candidate")) {
                   $version = $candidate
+                  $foundAvailableSuffix = $true
                   Write-Host "Selected suffixed version: $version"
                   break
                 }
+              }
+
+              if (-not $foundAvailableSuffix) {
+                throw "No available release tag suffix remained for base version '$base'."
               }
             }
             else {
@@ -99,7 +114,6 @@ jobs:
             "value=$version" >> $env:GITHUB_OUTPUT
             "vi_value=$base" >> $env:GITHUB_OUTPUT
             Write-Host "Version outputs written successfully."
-            $global:LASTEXITCODE = 0
           }
           catch {
             Write-Host "Version computation failed."
