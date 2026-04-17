@@ -19,10 +19,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.x'
 
@@ -35,32 +35,57 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          [xml]$csproj = Get-Content "PostmanOpenAPIConverter/PostmanOpenAPIConverter.csproj"
-          $baseVersion = $csproj.Project.PropertyGroup.BaseVersion | Where-Object { $_ } | Select-Object -First 1
-          if (-not $baseVersion) {
-            throw "BaseVersion was not found in PostmanOpenAPIConverter.csproj"
-          }
+          try {
+            $csprojPath = "PostmanOpenAPIConverter/PostmanOpenAPIConverter.csproj"
+            Write-Host "Loading project file: $csprojPath"
+            Write-Host "Current directory: $((Get-Location).Path)"
 
-          $base = "{0}.{1}" -f $baseVersion, (Get-Date -Format 'yy.MMdd')
-          $version = $base
+            [xml]$csproj = Get-Content $csprojPath -Raw
 
-          function Test-ReleaseTagExists([string]$TagName) {
-            $null = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName" 2>$null
-            return $LASTEXITCODE -eq 0
-          }
+            $propertyGroups = @($csproj.Project.PropertyGroup)
+            Write-Host "PropertyGroup count: $($propertyGroups.Count)"
 
-          if (Test-ReleaseTagExists "v$base") {
-            foreach ($suffix in 'b'..'z') {
-              $candidate = "$base$suffix"
-              if (-not (Test-ReleaseTagExists "v$candidate")) {
-                $version = $candidate
-                break
+            $baseVersion = $propertyGroups.BaseVersion | Where-Object { $_ } | Select-Object -First 1
+            Write-Host "Resolved BaseVersion: '$baseVersion'"
+
+            if (-not $baseVersion) {
+              $projectXml = $csproj.OuterXml
+              if ($projectXml.Length -gt 1000) {
+                $projectXml = $projectXml.Substring(0, 1000)
+              }
+
+              Write-Host "Project XML preview: $projectXml"
+              throw "BaseVersion was not found in PostmanOpenAPIConverter.csproj"
+            }
+
+            $base = "{0}.{1}" -f $baseVersion, (Get-Date -Format 'yy.MMdd')
+            $version = $base
+
+            function Test-ReleaseTagExists([string]$TagName) {
+              $null = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$TagName" 2>$null
+              return $LASTEXITCODE -eq 0
+            }
+
+            if (Test-ReleaseTagExists "v$base") {
+              foreach ($suffix in 'b'..'z') {
+                $candidate = "$base$suffix"
+                if (-not (Test-ReleaseTagExists "v$candidate")) {
+                  $version = $candidate
+                  break
+                }
               }
             }
-          }
 
-          "value=$version" >> $env:GITHUB_OUTPUT
-          "vi_value=$base" >> $env:GITHUB_OUTPUT
+            "value=$version" >> $env:GITHUB_OUTPUT
+            "vi_value=$base" >> $env:GITHUB_OUTPUT
+          }
+          catch {
+            Write-Host "Version computation failed."
+            Write-Host "Exception type: $($_.Exception.GetType().FullName)"
+            Write-Host "Exception message: $($_.Exception.Message)"
+            Write-Host "Script stack trace: $($_.ScriptStackTrace)"
+            throw
+          }
 
       - name: Install NSIS
         shell: powershell
