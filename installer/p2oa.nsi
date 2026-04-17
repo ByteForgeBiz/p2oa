@@ -27,7 +27,7 @@ InstallDirRegKey  HKLM "Software\p2oa" "InstallDir"
 RequestExecutionLevel admin
 
 !define PRODUCT_NAME  "p2oa"
-!define PUBLISHER     "Paulo Santos"
+!define PUBLISHER     "ByteForge"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\p2oa"
 !define EXE_FILES     "..\PostmanOpenAPIConverter\bin\publish"
 
