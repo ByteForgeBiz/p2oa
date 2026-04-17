@@ -56,6 +56,7 @@ dotnet run --project PostmanOpenAPIConverter -- from-postman-git -i out-dir -o c
 Useful note:
 
 - The CLI prints a banner to stderr by default; use `--no-banner`, `--quiet`, or `-q` to suppress it in scripts.
+- In this repository, `dotnet` commands hang when run by Codex in the current environment. When `dotnet build`, `dotnet test`, `dotnet run`, or similar verification is needed, ask the user to run it and report the result instead of attempting to execute it directly.
 
 ## Project Structure
 

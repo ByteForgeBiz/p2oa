@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'PostmanOpenAPIConverter/**'
+      - 'PostmanOpenAPIConverter.Tests/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'PostmanOpenAPIConverter/**'
+      - 'PostmanOpenAPIConverter.Tests/**'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore PostmanOpenAPIConverter.slnx
+
+      - name: Build
+        run: dotnet build PostmanOpenAPIConverter.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test PostmanOpenAPIConverter.slnx --configuration Release --no-build --verbosity normal
