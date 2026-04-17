@@ -658,10 +658,12 @@ public class PostmanToGitYamlConverterTests
 
             // Act
             PostmanToGitYamlConverter.Convert(collection, outputDir);
+            var folder = PostmanToGitYamlConverter.SanitizeName(collection.Info.Name);
+            var file = PostmanToGitYamlConverter.SanitizeName(collection.Item[0].Name);
 
             // Assert
-            Directory.Exists(Path.Combine(tempDir, "postman", "collections", "Test__Collection_")).Should().BeTrue();
-            File.Exists(Path.Combine(tempDir, "postman", "collections", "Test__Collection_", "Get__Users_.request.yaml")).Should().BeTrue();
+            Directory.Exists(Path.Combine(tempDir, "postman", "collections", folder)).Should().BeTrue();
+            File.Exists(Path.Combine(tempDir, "postman", "collections", folder, file + ".request.yaml")).Should().BeTrue();
         }
         finally
         {

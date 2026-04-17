@@ -335,7 +335,7 @@ public static class PostmanToGitYamlConverter
     /// </summary>
     /// <param name="name">The original name.</param>
     /// <returns>A sanitized name safe for use as a file or folder name.</returns>
-    private static string SanitizeName(string name)
+    internal static string SanitizeName(string name)
     {
         var invalid = Path.GetInvalidFileNameChars().Concat([' ']).ToArray();
         return string.Concat(name.Select(c => invalid.Contains(c) ? '_' : c)).Trim();
