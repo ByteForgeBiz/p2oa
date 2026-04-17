@@ -8,8 +8,7 @@ jobs:
   publish:
     runs-on: windows-latest
     permissions:
-      contents: write   # required to create GitHub releases and push tags
-      actions: write    # read/write repo variables for version tracking
+      contents: read    # required for actions/checkout
 
     steps:
       - name: Checkout

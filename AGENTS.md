@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to Codex when working with code in this repository.
+This file provides guidance for agents and contributors working with code in this repository.
 
 ## Project Overview
 
@@ -193,7 +193,7 @@ When changing conversion logic:
 
 If you touch packaging or release logic, inspect both the project file and the workflow/installer files together before editing.
 
-## Working Conventions For Agents
+## Working Conventions
 
 - Prefer `rg` / `rg --files` for searching
 - Read the existing converter/tests before changing conversion rules; subtle round-trip behavior matters here

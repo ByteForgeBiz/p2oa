@@ -8,7 +8,7 @@
     <AssemblyName>p2oa</AssemblyName>
     <BaseVersion>1.0</BaseVersion>
     <_DateComponent>$([System.DateTime]::Now.ToString("yy.MMdd"))</_DateComponent>
-    <Version>1.0.$(_DateComponent)</Version>
+    <Version>$(BaseVersion).$(_DateComponent)</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <Company>ByteForge</Company>
